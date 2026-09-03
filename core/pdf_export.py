@@ -91,7 +91,7 @@ def gerar_pdf_laudos(result: "LaudosResult") -> bytes:
     col_data_x = MARGEM + 6
     col_cliente_x = MARGEM + 58
     col_tipo_x = MARGEM + 218
-    col_status_x = MARGEM + 353
+    col_status_x = MARGEM + 380
     col_valor_x = LARGURA - MARGEM - 10
 
     altura_linha = 16
@@ -118,7 +118,7 @@ def gerar_pdf_laudos(result: "LaudosResult") -> bytes:
         c.setFillColor(HexColor("#222222"))
         c.drawString(col_data_x, y, row["DATA"].strftime("%d/%m/%Y"))
         c.drawString(col_cliente_x, y, str(row["CLIENTE"])[:26])
-        c.drawString(col_tipo_x, y, str(row["TIPO"])[:21])
+        c.drawString(col_tipo_x, y, str(row["TIPO"])[:26])
         c.drawString(col_status_x, y, str(row["STATUS"]))
         c.drawRightString(col_valor_x, y, format_brl(row["VALOR"]))
         y -= altura_linha
