@@ -134,6 +134,28 @@ computador ligado, usando o Streamlit Community Cloud (gratuito):
    `https://seu-app.streamlit.app` para acessar de qualquer lugar — ele vai
    pedir o login configurado no passo 3 antes de mostrar as telas.
 
+## Tipos de laudo vistos na planilha mas ainda sem valor cadastrado
+
+Ao revisar a planilha inteira em 2026-09, encontrei estes nomes de tipo de
+laudo que aparecem em algum registro mas não têm valor na tabela — enquanto
+não forem cadastrados em **Gerenciar valores**, esses laudos entram no
+relatório como R$ 0,00 (o programa avisa na tela quando isso acontece):
+
+- AUTO (BALÃO)
+- AUTO (REFIN)
+- AUTO(CONSÓRCIO)
+- BALÃO
+- CONSIGNADO
+- FINANCIAMENTO
+- LOTE
+- PLACA SOLAR
+- REFIN
+
+Alguns parecem variações de tipos já cadastrados (ex: `BALÃO` vs
+`AUTO-BALÃO`, `LOTE` vs `LOTEAMENTO`) — vale conferir com quem preenche a
+planilha se são o mesmo tipo (aí é só usar a grafia já cadastrada) ou tipos
+realmente novos (aí é só adicionar o valor).
+
 ## Observações técnicas
 
 - O programa lê automaticamente todas as abas de cada planilha que tenham as
