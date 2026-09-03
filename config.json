@@ -1,0 +1,16 @@
+{
+  "laudos": {
+    "AUTO": 40.0,
+    "AUTO-BALÃO": 60.0,
+    "CONSÓRCIO": 200.0,
+    "EMPRÉSTIMO": 40.0,
+    "LOTEAMENTO": 400.0,
+    "IMÓVEL": 70.0
+  },
+  "audiencias": {
+    "ANGITU": {
+      "modalidade": "Avulso",
+      "valor": 400.0
+    }
+  }
+}

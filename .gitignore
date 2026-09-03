@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.streamlit/secrets.toml
+!.streamlit/secrets.toml.example
+*.xlsx
+*.xls
+*.csv
+.claude/
