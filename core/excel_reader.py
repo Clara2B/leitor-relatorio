@@ -42,13 +42,24 @@ def _find_header_row(rows: List[tuple], required_headers: List[str]) -> Optional
     return None
 
 
-def load_data_sheets(path: str, required_headers: List[str]) -> pd.DataFrame:
+def load_data_sheets(
+    path: str,
+    required_headers: List[str],
+    chave_duplicidade: Optional[List[str]] = None,
+) -> pd.DataFrame:
     """Lê todas as abas do arquivo que contenham as colunas exigidas
     (ex: 'EMPRESA' e 'TIPO DE LAUDO') e devolve tudo empilhado num único
     DataFrame, com uma coluna extra '_ABA' indicando de qual mês veio.
 
     Abas de controle/dashboard (que não têm essas colunas) são ignoradas
     automaticamente — não é preciso listar seus nomes.
+
+    `chave_duplicidade`: colunas que identificam um registro de verdade
+    (ex: data + cliente + empresa). Quando o mesmo registro aparece em mais
+    de uma aba (ex: uma aba "mestre" e a aba do mês), colunas secundárias
+    como "checklist" ou "advogada" podem vir preenchidas de forma diferente
+    em cada aba — comparar a linha inteira não detectaria a duplicata. Se
+    não for informado, compara a linha inteira (comportamento antigo).
     """
     wb = openpyxl.load_workbook(path, data_only=True)
     frames = []
@@ -81,10 +92,16 @@ def load_data_sheets(path: str, required_headers: List[str]) -> pd.DataFrame:
     resultado = pd.concat(frames, ignore_index=True)
     # Algumas planilhas mantêm uma aba "mestre" (ex: AGENDAMENTO) além das
     # abas por mês, e o mesmo registro acaba em duas abas ao mesmo tempo —
-    # o que duplicaria a contagem no relatório. Remove linhas idênticas
-    # (ignorando só a coluna _ABA), mantendo a primeira ocorrência.
-    colunas_para_comparar = [c for c in resultado.columns if c != "_ABA"]
-    resultado = resultado.drop_duplicates(subset=colunas_para_comparar, keep="first")
+    # o que duplicaria a contagem no relatório. Remove registros repetidos,
+    # mantendo a primeira ocorrência.
+    if chave_duplicidade:
+        colunas_chave = [_canonical_header(h) for h in chave_duplicidade]
+        colunas_chave = [c for c in colunas_chave if c in resultado.columns]
+    else:
+        colunas_chave = []
+    if not colunas_chave:
+        colunas_chave = [c for c in resultado.columns if c != "_ABA"]
+    resultado = resultado.drop_duplicates(subset=colunas_chave, keep="first")
     return resultado.reset_index(drop=True)
 
 

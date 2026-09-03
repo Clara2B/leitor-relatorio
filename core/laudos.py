@@ -21,7 +21,21 @@ STATUS_MAP = {
     "CORREÇÃO": "CORREÇÃO",
 }
 
+# Cobrança padrão: solicitação e correção contam juntas no relatório
+# (laudos "Cancelado" continuam de fora, mesmo nesse modo).
+STATUS_AMBOS = "AMBOS"
+STATUS_VALIDOS = {"SOLICITAÇÃO", "CORREÇÃO"}
+OPCOES_STATUS = ["Solicitação + Corrigido (cobrança)", "Somente Solicitação", "Somente Corrigido"]
+STATUS_OPCAO_MAP = {
+    normalize(OPCOES_STATUS[0]): STATUS_AMBOS,
+    normalize(OPCOES_STATUS[1]): "SOLICITAÇÃO",
+    normalize(OPCOES_STATUS[2]): "CORREÇÃO",
+}
+
 REQUIRED_HEADERS = ["EMPRESA", "TIPO DE LAUDO", "DATA"]
+# Identifica um laudo de verdade (evita perder registros por causa de
+# colunas secundárias como observação/entrega vindas diferentes entre abas).
+CHAVE_DUPLICIDADE = ["DATA", "NOME DO CLIENTE", "EMPRESA", "TIPO DE LAUDO"]
 
 
 @dataclass
@@ -49,7 +63,7 @@ def periodo_20_a_20(ano: int, mes: int) -> Tuple[date, date]:
 
 
 def carregar_planilha(path: str) -> pd.DataFrame:
-    df = load_data_sheets(path, REQUIRED_HEADERS)
+    df = load_data_sheets(path, REQUIRED_HEADERS, chave_duplicidade=CHAVE_DUPLICIDADE)
     if df.empty:
         raise ValueError(
             "Não encontrei nenhuma aba com as colunas 'EMPRESA' e 'TIPO DE LAUDO' "
@@ -94,7 +108,13 @@ def gerar_relatorio(
     col_status = _col_optional(df, "ENTRADA DE LAUDO") or _col_optional(df, "STATUS")
 
     alvo_empresa = normalize(empresa)
-    status_normalizado = STATUS_MAP.get(normalize(status), normalize(status))
+    status_key = normalize(status)
+    if status_key in STATUS_OPCAO_MAP:
+        status_normalizado = STATUS_OPCAO_MAP[status_key]
+    elif status_key in {normalize("Ambos"), normalize("Solicitação + Corrigido")}:
+        status_normalizado = STATUS_AMBOS
+    else:
+        status_normalizado = STATUS_MAP.get(status_key, status_key)
 
     empresas_disponiveis = {normalize(v) for v in df[col_empresa].dropna()}
     if alvo_empresa not in empresas_disponiveis:
@@ -115,7 +135,10 @@ def gerar_relatorio(
             continue
         if col_status is not None:
             status_linha = STATUS_MAP.get(normalize(row.get(col_status)), normalize(row.get(col_status)))
-            if status_linha != status_normalizado:
+            if status_normalizado == STATUS_AMBOS:
+                if status_linha not in STATUS_VALIDOS:  # exclui Cancelado/vazio
+                    continue
+            elif status_linha != status_normalizado:
                 continue
         tipo = str(row.get(col_tipo)).strip() if row.get(col_tipo) is not None else ""
         if not tipo:
@@ -133,12 +156,18 @@ def gerar_relatorio(
 
     total = float(linhas_df["VALOR"].sum()) if not linhas_df.empty else 0.0
 
+    status_label = {
+        STATUS_AMBOS: "Solicitação + Corrigido",
+        "SOLICITAÇÃO": "Solicitação",
+        "CORREÇÃO": "Corrigido",
+    }.get(status_normalizado, status_normalizado)
+
     return LaudosResult(
         empresa=empresa.strip(),
         cnpj=cnpj,
         periodo_ini=periodo_ini,
         periodo_fim=periodo_fim,
-        status=status_normalizado,
+        status=status_label,
         linhas=linhas_df,
         tipos_sem_valor=sorted(tipos_sem_valor),
         total=total,

@@ -14,6 +14,9 @@ from core.excel_reader import load_data_sheets
 from core.utils import format_brl, normalize, parse_date_cell
 
 REQUIRED_HEADERS = ["EMPRESA", "NOME COMPLETO", "DATA DE RECEBIMENTO"]
+# Identifica uma audiência de verdade (evita perder registros por causa de
+# colunas secundárias como advogada/checklist vindas diferentes entre abas).
+CHAVE_DUPLICIDADE = ["DATA DE RECEBIMENTO", "EMPRESA", "NOME COMPLETO", "CPF"]
 
 
 @dataclass
@@ -38,7 +41,7 @@ def periodo_quinzenal(ano: int, mes: int, quinzena: int) -> Tuple[date, date]:
 
 
 def carregar_planilha(path: str) -> pd.DataFrame:
-    df = load_data_sheets(path, REQUIRED_HEADERS)
+    df = load_data_sheets(path, REQUIRED_HEADERS, chave_duplicidade=CHAVE_DUPLICIDADE)
     if df.empty:
         raise ValueError(
             "Não encontrei nenhuma aba com as colunas 'EMPRESA' e 'NOME COMPLETO' "

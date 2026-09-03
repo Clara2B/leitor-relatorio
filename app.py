@@ -100,7 +100,8 @@ def pagina_laudos():
             mes = st.selectbox("Mês de início do período (dia 20)", MESES, index=hoje.month - 1)
             ano = st.number_input("Ano", min_value=2020, max_value=2100, value=hoje.year, step=1)
         with col3:
-            status_opcao = st.radio("Status", ["Solicitação", "Corrigido"])
+            status_opcao = st.radio("Status", laudos.OPCOES_STATUS)
+            st.caption("Por padrão, laudos de solicitação e de correção entram juntos no total (é assim que a cobrança é feita).")
 
         mes_num = MESES.index(mes) + 1
         periodo_ini, periodo_fim = laudos.periodo_20_a_20(int(ano), mes_num)
@@ -123,7 +124,7 @@ def pagina_laudos():
         st.warning(
             f"Nenhum laudo encontrado para **{empresa}** no período "
             f"{periodo_ini.strftime('%d/%m/%Y')} a {periodo_fim.strftime('%d/%m/%Y')} "
-            f"com status **{status_opcao}**."
+            f"com status **{resultado.status}**."
         )
         return
 
@@ -137,7 +138,7 @@ def pagina_laudos():
         )
         st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown(f"#### Resultado — {resultado.empresa.upper()} · {status_opcao}")
+    st.markdown(f"#### Resultado — {resultado.empresa.upper()} · {resultado.status}")
     m1, m2, m3 = st.columns(3)
     m1.metric("Laudos encontrados", len(resultado.linhas))
     m2.metric("Total geral", format_brl(resultado.total))
