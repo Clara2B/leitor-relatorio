@@ -238,16 +238,14 @@ def pagina_audiencias():
 
     if not resultado.valor_cadastrado:
         st.warning(
-            f"⚠️ A empresa **{empresa}** ainda não tem modalidade/valor cadastrados. "
+            f"⚠️ A empresa **{empresa}** ainda não tem valor cadastrado. "
             "Cadastre abaixo ou na aba **⚙️ Gerenciar valores**."
         )
         with st.form("cadastro_rapido_audiencia"):
             st.write(f"Cadastrar valor agora para {empresa}:")
-            c1, c2 = st.columns(2)
-            modalidade_nova = c1.text_input("Modalidade de Contratação", "Avulso")
-            valor_novo = c2.number_input("Valor por audiência (R$)", min_value=0.0, step=10.0)
+            valor_novo = st.number_input("Valor por audiência (R$)", min_value=0.0, step=10.0)
             if st.form_submit_button("Cadastrar e gerar novamente", type="primary"):
-                set_config_audiencia(config, empresa, modalidade_nova, valor_novo)
+                set_config_audiencia(config, empresa, valor_novo)
                 st.success("Cadastrado! Clique em '🔎 Gerar relatório' novamente.")
         return
 
@@ -311,43 +309,39 @@ def pagina_gerenciar_valores():
 
     st.divider()
     st.subheader("⚖️ Empresas de audiência")
-    st.caption("Modalidade de contratação e valor por audiência, por empresa.")
+    st.caption("Valor por audiência, por empresa.")
 
     aud_cfg = config.get("audiencias", {})
     if not aud_cfg:
         st.info("Nenhuma empresa de audiência cadastrada ainda.")
     for empresa, dados in list(aud_cfg.items()):
         with st.container(border=True):
-            c1, c2, c3, c4 = st.columns([3, 2, 2, 1])
+            c1, c2, c3 = st.columns([4, 2, 1])
             c1.markdown(f"**{empresa}**")
-            nova_modalidade = c2.text_input(
-                "Modalidade", value=dados.get("modalidade", ""), key=f"mod_{empresa}"
-            )
-            novo_valor = c3.number_input(
+            novo_valor = c2.number_input(
                 "Valor por audiência (R$)",
                 min_value=0.0,
                 step=10.0,
                 value=float(dados.get("valor", 0.0)),
                 key=f"val_{empresa}",
             )
-            c4.write("")
-            c4.write("")
-            if c4.button("🗑️ Remover", key=f"rm_aud_{empresa}", use_container_width=True):
+            c3.write("")
+            c3.write("")
+            if c3.button("🗑️ Remover", key=f"rm_aud_{empresa}", use_container_width=True):
                 remove_config_audiencia(config, empresa)
                 st.rerun()
-            if nova_modalidade != dados.get("modalidade") or novo_valor != dados.get("valor"):
-                set_config_audiencia(config, empresa, nova_modalidade, novo_valor)
+            if novo_valor != dados.get("valor"):
+                set_config_audiencia(config, empresa, novo_valor)
                 st.rerun()
 
     with st.form("nova_empresa_audiencia", border=True):
         st.markdown("**➕ Adicionar nova empresa**")
-        c1, c2, c3 = st.columns(3)
+        c1, c2 = st.columns(2)
         nova_empresa = c1.text_input("Nome da empresa")
-        nova_modalidade = c2.text_input("Modalidade de Contratação", "Avulso")
-        novo_valor = c3.number_input("Valor por audiência (R$)", min_value=0.0, step=10.0)
+        novo_valor = c2.number_input("Valor por audiência (R$)", min_value=0.0, step=10.0)
         if st.form_submit_button("Adicionar", type="primary"):
             if nova_empresa.strip():
-                set_config_audiencia(config, nova_empresa.strip(), nova_modalidade, novo_valor)
+                set_config_audiencia(config, nova_empresa.strip(), novo_valor)
                 st.rerun()
             else:
                 st.error("Informe o nome da empresa.")

@@ -25,7 +25,6 @@ class AudienciasResult:
     cnpj: Optional[str]
     periodo_ini: date
     periodo_fim: date
-    modalidade: Optional[str]
     valor_unitario: Optional[float]
     clientes: List[str] = field(default_factory=list)
     total: Optional[float] = None
@@ -104,7 +103,6 @@ def gerar_relatorio(
     clientes = sorted(clientes, key=normalize)
 
     cfg_empresa = get_config_audiencia(config, empresa)
-    modalidade = cfg_empresa.get("modalidade") if cfg_empresa else None
     valor_unitario = float(cfg_empresa["valor"]) if cfg_empresa and cfg_empresa.get("valor") is not None else None
     total = valor_unitario * len(clientes) if valor_unitario is not None else None
 
@@ -113,7 +111,6 @@ def gerar_relatorio(
         cnpj=cnpj,
         periodo_ini=periodo_ini,
         periodo_fim=periodo_fim,
-        modalidade=modalidade,
         valor_unitario=valor_unitario,
         clientes=clientes,
         total=total,
@@ -126,7 +123,6 @@ def formatar_texto(result: AudienciasResult) -> str:
     if result.cnpj:
         linhas.append(f"CNPJ: {result.cnpj}")
     linhas.append(f"Período: {result.periodo_ini.strftime('%d/%m/%Y')} -{result.periodo_fim.strftime('%d/%m/%Y')}")
-    linhas.append(f"Modalidade de Contratação: {result.modalidade or '(não cadastrada)'}")
     if result.valor_unitario is not None:
         linhas.append(f"Valor por audiência: {format_brl(result.valor_unitario)}")
     linhas.append(f"Quantidade solicitada no período: {len(result.clientes)}")

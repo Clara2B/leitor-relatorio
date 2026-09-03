@@ -9,7 +9,132 @@
   },
   "audiencias": {
     "ANGITU": {
-      "modalidade": "Avulso",
+      "valor": 400.0
+    },
+    "ABSOLUTA": {
+      "valor": 400.0
+    },
+    "ALLURE": {
+      "valor": 400.0
+    },
+    "ALPHA": {
+      "valor": 400.0
+    },
+    "APEX": {
+      "valor": 400.0
+    },
+    "ATITUDE": {
+      "valor": 400.0
+    },
+    "ATIVA": {
+      "valor": 400.0
+    },
+    "ATLAS": {
+      "valor": 400.0
+    },
+    "AXIS": {
+      "valor": 400.0
+    },
+    "DAKAL": {
+      "valor": 400.0
+    },
+    "EROS": {
+      "valor": 400.0
+    },
+    "FLY": {
+      "valor": 400.0
+    },
+    "FOX": {
+      "valor": 400.0
+    },
+    "HEIT": {
+      "valor": 400.0
+    },
+    "GUARDIÃ": {
+      "valor": 400.0
+    },
+    "HUNTING": {
+      "valor": 400.0
+    },
+    "JUROS": {
+      "valor": 400.0
+    },
+    "MARTAN": {
+      "valor": 400.0
+    },
+    "NEXUS": {
+      "valor": 400.0
+    },
+    "NOVA": {
+      "valor": 400.0
+    },
+    "NOVARE": {
+      "valor": 400.0
+    },
+    "PLATINO": {
+      "valor": 400.0
+    },
+    "PROMISS": {
+      "valor": 400.0
+    },
+    "PRÓSPERA": {
+      "valor": 400.0
+    },
+    "REAL": {
+      "valor": 400.0
+    },
+    "REALLY": {
+      "valor": 400.0
+    },
+    "REGULARIZE": {
+      "valor": 400.0
+    },
+    "RENOVA": {
+      "valor": 400.0
+    },
+    "RETRIX": {
+      "valor": 400.0
+    },
+    "REVISION": {
+      "valor": 400.0
+    },
+    "ROCKET": {
+      "valor": 400.0
+    },
+    "SIMPLIFICA": {
+      "valor": 400.0
+    },
+    "SW": {
+      "valor": 400.0
+    },
+    "EWS": {
+      "valor": 400.0
+    },
+    "TEG": {
+      "valor": 400.0
+    },
+    "TIMER": {
+      "valor": 400.0
+    },
+    "TITÃ": {
+      "valor": 400.0
+    },
+    "TORRES": {
+      "valor": 400.0
+    },
+    "VERITAS": {
+      "valor": 400.0
+    },
+    "WALLTRIX": {
+      "valor": 400.0
+    },
+    "FAST": {
+      "valor": 400.0
+    },
+    "WNR": {
+      "valor": 400.0
+    },
+    "ZENITH": {
       "valor": 400.0
     }
   }

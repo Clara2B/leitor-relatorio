@@ -75,7 +75,7 @@ def remove_valor_laudo(config: Dict[str, Any], tipo_laudo: str) -> None:
 
 
 def get_config_audiencia(config: Dict[str, Any], empresa: str):
-    """Retorna {"modalidade":..., "valor":...} para a empresa, ou None."""
+    """Retorna {"valor":...} para a empresa, ou None."""
     alvo = normalize(empresa)
     for nome, dados in config.get("audiencias", {}).items():
         if normalize(nome) == alvo:
@@ -83,15 +83,15 @@ def get_config_audiencia(config: Dict[str, Any], empresa: str):
     return None
 
 
-def set_config_audiencia(config: Dict[str, Any], empresa: str, modalidade: str, valor: float) -> None:
+def set_config_audiencia(config: Dict[str, Any], empresa: str, valor: float) -> None:
     config.setdefault("audiencias", {})
     alvo = normalize(empresa)
     for nome_existente in list(config["audiencias"].keys()):
         if normalize(nome_existente) == alvo:
-            config["audiencias"][nome_existente] = {"modalidade": modalidade, "valor": float(valor)}
+            config["audiencias"][nome_existente] = {"valor": float(valor)}
             save_config(config)
             return
-    config["audiencias"][empresa] = {"modalidade": modalidade, "valor": float(valor)}
+    config["audiencias"][empresa] = {"valor": float(valor)}
     save_config(config)
 
 

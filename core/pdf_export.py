@@ -29,7 +29,6 @@ FUNDO_AUDIENCIAS = ASSETS_DIR / "audiencias_logo_0.jpeg"
 
 NAVY = HexColor("#152A40")
 NAVY_CLARO = HexColor("#1F3B57")
-LINHA_PAR = HexColor("#F2F2F2")
 
 LARGURA, ALTURA = A4
 MARGEM = 42
@@ -52,7 +51,7 @@ def _fundo(c: canvas.Canvas, caminho_imagem: Path):
 
 def _cabecalho_empresa(c: canvas.Canvas, y: float, empresa: str, cnpj: str | None, linhas_extra: list[str]) -> float:
     """Desenha a faixa azul-marinho com Empresa/CNPJ e linhas extras
-    (período, modalidade, etc.). Retorna o novo Y (topo livre abaixo dela)."""
+    (período, valor, etc.). Retorna o novo Y (topo livre abaixo dela)."""
     altura_linha = 18
     n_linhas = 2 + len(linhas_extra) if cnpj else 1 + len(linhas_extra)
     altura_faixa = altura_linha * n_linhas + 12
@@ -108,9 +107,6 @@ def gerar_pdf_laudos(result: "LaudosResult") -> bytes:
             _fundo(c, FUNDO_LAUDOS)
             y = TOPO_CONTEUDO - 20
             c.setFont("Helvetica", 9)
-        if i % 2 == 0:
-            c.setFillColor(LINHA_PAR)
-            c.rect(MARGEM, y - 4, LARGURA - 2 * MARGEM, altura_linha, stroke=0, fill=1)
         c.setFillColor(HexColor("#222222"))
         c.drawString(col_data_x, y, row["DATA"].strftime("%d/%m/%Y"))
         c.drawString(col_cliente_x, y, str(row["CLIENTE"])[:38])
@@ -138,7 +134,6 @@ def gerar_pdf_audiencias(result: "AudienciasResult") -> bytes:
 
     linhas_extra = [
         f"Período: {result.periodo_ini.strftime('%d/%m/%Y')} - {result.periodo_fim.strftime('%d/%m/%Y')}",
-        f"Modalidade de Contratação: {result.modalidade or '(não cadastrada)'}",
     ]
     if result.valor_unitario is not None:
         linhas_extra.append(f"Valor por audiência: {format_brl(result.valor_unitario)}")
@@ -160,9 +155,6 @@ def gerar_pdf_audiencias(result: "AudienciasResult") -> bytes:
             _fundo(c, FUNDO_AUDIENCIAS)
             y = TOPO_CONTEUDO - 20
             c.setFont("Helvetica", 9)
-        if i % 2 == 1:
-            c.setFillColor(LINHA_PAR)
-            c.rect(MARGEM, y - 4, LARGURA - 2 * MARGEM, altura_linha, stroke=0, fill=1)
         c.setFillColor(HexColor("#222222"))
         c.drawString(MARGEM + 6, y, f"{i} - {nome.upper()}")
         y -= altura_linha
