@@ -167,7 +167,7 @@ def pagina_laudos():
         tabela = resultado.linhas.copy()
         tabela["DATA"] = tabela["DATA"].apply(lambda d: d.strftime("%d/%m/%Y"))
         tabela["VALOR"] = tabela["VALOR"].apply(format_brl)
-        tabela.columns = ["Data", "Cliente", "Tipo de laudo", "Valor"]
+        tabela.columns = ["Data", "Cliente", "Tipo de laudo", "Status", "Valor"]
         st.dataframe(tabela, use_container_width=True, hide_index=True)
 
     resumo_por_tipo = (
