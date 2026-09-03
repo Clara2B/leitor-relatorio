@@ -133,6 +133,7 @@ def gerar_relatorio(
         data_val = parse_date_cell(row.get(col_data))
         if data_val is None or not (periodo_ini <= data_val <= periodo_fim):
             continue
+        status_linha = None
         if col_status is not None:
             status_linha = STATUS_MAP.get(normalize(row.get(col_status)), normalize(row.get(col_status)))
             if status_normalizado == STATUS_AMBOS:
@@ -148,9 +149,15 @@ def gerar_relatorio(
             tipos_sem_valor.add(tipo)
             valor = 0.0
         cliente = str(row.get(col_cliente)).strip() if col_cliente and row.get(col_cliente) is not None else ""
-        linhas.append({"DATA": data_val, "CLIENTE": cliente, "TIPO": tipo.upper(), "VALOR": valor})
+        status_linha_label = {
+            "SOLICITAÇÃO": "Solicitação",
+            "CORREÇÃO": "Corrigido",
+        }.get(status_linha, "")
+        linhas.append(
+            {"DATA": data_val, "CLIENTE": cliente, "TIPO": tipo.upper(), "STATUS": status_linha_label, "VALOR": valor}
+        )
 
-    linhas_df = pd.DataFrame(linhas, columns=["DATA", "CLIENTE", "TIPO", "VALOR"])
+    linhas_df = pd.DataFrame(linhas, columns=["DATA", "CLIENTE", "TIPO", "STATUS", "VALOR"])
     if not linhas_df.empty:
         linhas_df = linhas_df.sort_values("CLIENTE", key=lambda s: s.map(normalize)).reset_index(drop=True)
 
@@ -181,10 +188,12 @@ def formatar_texto(result: LaudosResult) -> str:
     if result.cnpj:
         linhas_txt.append(f"CNPJ: {result.cnpj}")
     linhas_txt.append("")
-    linhas_txt.append(f"{'DATA':<12}{'CLIENTE':<45}{'TIPO DE LAUDO':<18}{'VALOR':>10}")
+    linhas_txt.append(f"{'DATA':<12}{'CLIENTE':<45}{'TIPO DE LAUDO':<18}{'STATUS':<14}{'VALOR':>10}")
     for _, row in result.linhas.iterrows():
         data_str = row["DATA"].strftime("%d/%m/%Y")
-        linhas_txt.append(f"{data_str:<12}{row['CLIENTE']:<45}{row['TIPO']:<18}{format_brl(row['VALOR']):>10}")
+        linhas_txt.append(
+            f"{data_str:<12}{row['CLIENTE']:<45}{row['TIPO']:<18}{row['STATUS']:<14}{format_brl(row['VALOR']):>10}"
+        )
     linhas_txt.append("")
     linhas_txt.append(f"Total{' ' * 70}{format_brl(result.total)}")
     return "\n".join(linhas_txt)

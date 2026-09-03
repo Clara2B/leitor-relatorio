@@ -12,7 +12,7 @@ import io
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from reportlab.lib.colors import HexColor, whitesmoke
+from reportlab.lib.colors import HexColor, white, whitesmoke
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
@@ -36,7 +36,7 @@ TOPO_CONTEUDO = ALTURA - 230  # abaixo do bloco de logo
 RODAPE_LIMITE = 70  # não desenhar depois disso (fica em cima do rodapé da folha)
 
 
-def _fundo(c: canvas.Canvas, caminho_imagem: Path):
+def _fundo(c: canvas.Canvas, caminho_imagem: Path, cobrir_rodape: bool = False):
     if caminho_imagem.exists():
         c.drawImage(
             ImageReader(str(caminho_imagem)),
@@ -47,6 +47,12 @@ def _fundo(c: canvas.Canvas, caminho_imagem: Path):
             preserveAspectRatio=False,
             mask="auto",
         )
+    if cobrir_rodape:
+        # A folha da ELITE já vem com uma linha de contato (instagram/
+        # WhatsApp/e-mail) impressa perto do rodapé — pinta um retângulo
+        # branco por cima para escondê-la.
+        c.setFillColor(white)
+        c.rect(0, 0, LARGURA, 60, stroke=0, fill=1)
 
 
 def _cabecalho_empresa(c: canvas.Canvas, y: float, empresa: str, cnpj: str | None, linhas_extra: list[str]) -> float:
@@ -78,13 +84,14 @@ def _cabecalho_empresa(c: canvas.Canvas, y: float, empresa: str, cnpj: str | Non
 def gerar_pdf_laudos(result: "LaudosResult") -> bytes:
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
-    _fundo(c, FUNDO_LAUDOS)
+    _fundo(c, FUNDO_LAUDOS, cobrir_rodape=True)
 
     y = _cabecalho_empresa(c, TOPO_CONTEUDO, result.empresa, result.cnpj, [f"Status: {result.status}"])
 
     col_data_x = MARGEM + 6
-    col_cliente_x = MARGEM + 80
-    col_tipo_x = LARGURA - MARGEM - 170
+    col_cliente_x = MARGEM + 60
+    col_tipo_x = MARGEM + 215
+    col_status_x = MARGEM + 335
     col_valor_x = LARGURA - MARGEM - 10
 
     altura_linha = 16
@@ -94,6 +101,7 @@ def gerar_pdf_laudos(result: "LaudosResult") -> bytes:
     c.drawString(col_data_x, y, "DATA")
     c.drawString(col_cliente_x, y, "CLIENTE")
     c.drawString(col_tipo_x, y, "TIPO DE LAUDO")
+    c.drawString(col_status_x, y, "STATUS")
     c.drawRightString(col_valor_x, y, "VALOR")
     y -= 6
     c.setStrokeColor(NAVY)
@@ -104,13 +112,14 @@ def gerar_pdf_laudos(result: "LaudosResult") -> bytes:
     for i, (_, row) in enumerate(result.linhas.iterrows()):
         if y < RODAPE_LIMITE + 30:
             c.showPage()
-            _fundo(c, FUNDO_LAUDOS)
+            _fundo(c, FUNDO_LAUDOS, cobrir_rodape=True)
             y = TOPO_CONTEUDO - 20
             c.setFont("Helvetica", 9)
         c.setFillColor(HexColor("#222222"))
         c.drawString(col_data_x, y, row["DATA"].strftime("%d/%m/%Y"))
-        c.drawString(col_cliente_x, y, str(row["CLIENTE"])[:38])
-        c.drawString(col_tipo_x, y, str(row["TIPO"])[:22])
+        c.drawString(col_cliente_x, y, str(row["CLIENTE"])[:26])
+        c.drawString(col_tipo_x, y, str(row["TIPO"])[:18])
+        c.drawString(col_status_x, y, str(row["STATUS"]))
         c.drawRightString(col_valor_x, y, format_brl(row["VALOR"]))
         y -= altura_linha
 
