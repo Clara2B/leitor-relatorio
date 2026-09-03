@@ -116,7 +116,7 @@ def pagina_laudos():
             )
         with col2:
             hoje = date.today()
-            mes = st.selectbox("Mês de início do período (dia 20)", MESES, index=hoje.month - 1)
+            mes = st.selectbox("Mês de início do período (dia 21)", MESES, index=hoje.month - 1)
             ano = st.number_input("Ano", min_value=2020, max_value=2100, value=hoje.year, step=1)
         with col3:
             status_opcao = st.radio("Status", laudos.OPCOES_STATUS)

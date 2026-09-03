@@ -100,8 +100,8 @@ diretamente (por exemplo, para colar vários valores de uma vez), o formato é:
 ## Regras aplicadas
 
 **Laudos**
-- Período: sempre do dia 20 de um mês ao dia 20 do mês seguinte (as duas
-  pontas incluídas). Escolha o mês/ano do dia 20 inicial na tela.
+- Período: sempre do dia 21 de um mês ao dia 20 do mês seguinte (as duas
+  pontas incluídas). Escolha o mês/ano do dia 21 inicial na tela.
 - Filtra por empresa (coluna `EMPRESA` da planilha) e por status
   (`Solicitação` ou `Corrigido`, comparado com a coluna `ENTRADA DE LAUDO`).
 - Cada linha do relatório mostra data, cliente, tipo de laudo e valor (vindo

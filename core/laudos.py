@@ -51,9 +51,9 @@ class LaudosResult:
 
 
 def periodo_20_a_20(ano: int, mes: int) -> Tuple[date, date]:
-    """Constrói o período padrão de laudos: dia 20 do mês informado até
+    """Constrói o período padrão de laudos: dia 21 do mês informado até
     dia 20 do mês seguinte (ambas as pontas incluídas)."""
-    ini = date(ano, mes, 20)
+    ini = date(ano, mes, 21)
     if mes == 12:
         prox_ano, prox_mes = ano + 1, 1
     else:
