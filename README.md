@@ -56,6 +56,20 @@ painel "Secrets" do próprio Streamlit Cloud, no mesmo formato do
 5. O texto pronto aparece na caixa — selecione tudo (`Ctrl+A` dentro da caixa,
    depois `Ctrl+C`) e cole no relatório final. Também dá para baixar como
    `.txt` pelo botão abaixo da caixa.
+6. Logo abaixo tem o botão **⬇️ Baixar PDF** — gera o mesmo relatório já na
+   folha personalizada da empresa (logo, faixa e rodapé), pronto para enviar.
+
+## Relatório em PDF (folha personalizada)
+
+O botão **Baixar PDF** usa a mesma folha timbrada que já é usada hoje: uma
+para laudos (marca ELITE) e outra para audiências (marca EXIMIA), guardadas
+em `assets/laudos_logo_0.jpeg` e `assets/audiencias_logo_0.jpeg`.
+
+Para trocar a folha (outra logo, outro rodapé, outra marca), basta substituir
+o arquivo de imagem correspondente por uma nova imagem no tamanho de uma
+folha A4 (retrato) — não precisa mexer em código. O texto do relatório
+(empresa, período, tabela, total) é desenhado por cima dessa imagem
+automaticamente.
 
 ## Como editar os valores (tipos de laudo e empresas de audiência)
 

@@ -19,6 +19,7 @@ from core.config_store import (
     set_config_audiencia,
     set_valor_laudo,
 )
+from core.pdf_export import gerar_pdf_audiencias, gerar_pdf_laudos
 from core.utils import format_brl
 
 st.set_page_config(page_title="Relatórios - Laudos e Audiências", layout="wide", page_icon="📄")
@@ -66,6 +67,17 @@ def caixa_texto_copiavel(texto: str, nome_arquivo: str):
     st.markdown("##### 📋 Texto pronto para copiar")
     st.code(texto, language=None)
     st.download_button("⬇️ Baixar como .txt", texto, file_name=nome_arquivo, use_container_width=False)
+
+
+def botao_pdf(pdf_bytes: bytes, nome_arquivo: str):
+    st.markdown("##### 📄 Relatório em PDF (folha personalizada)")
+    st.download_button(
+        "⬇️ Baixar PDF",
+        pdf_bytes,
+        file_name=nome_arquivo,
+        mime="application/pdf",
+        use_container_width=False,
+    )
 
 
 def pagina_laudos():
@@ -164,6 +176,9 @@ def pagina_laudos():
     texto = laudos.formatar_texto(resultado)
     caixa_texto_copiavel(texto, f"relatorio_laudos_{empresa}.txt")
 
+    pdf_bytes = gerar_pdf_laudos(resultado)
+    botao_pdf(pdf_bytes, f"relatorio_laudos_{empresa}.pdf")
+
 
 def pagina_audiencias():
     st.header("⚖️ Relatório de Audiências")
@@ -251,6 +266,9 @@ def pagina_audiencias():
 
     texto = audiencias.formatar_texto(resultado)
     caixa_texto_copiavel(texto, f"relatorio_audiencias_{empresa}.txt")
+
+    pdf_bytes = gerar_pdf_audiencias(resultado)
+    botao_pdf(pdf_bytes, f"relatorio_audiencias_{empresa}.pdf")
 
 
 def pagina_gerenciar_valores():
