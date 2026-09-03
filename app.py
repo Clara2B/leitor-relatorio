@@ -183,8 +183,9 @@ def pagina_laudos():
     texto = laudos.formatar_texto(resultado)
     caixa_texto_copiavel(texto, f"relatorio_laudos_{empresa}.txt")
 
+    periodo_arquivo = f"{periodo_ini.strftime('%d.%m')}_a_{periodo_fim.strftime('%d.%m')}"
     pdf_bytes = gerar_pdf_laudos(resultado)
-    botao_pdf(pdf_bytes, f"relatorio_laudos_{empresa}.pdf")
+    botao_pdf(pdf_bytes, f"relatorio_laudos_{empresa}_{periodo_arquivo}.pdf")
 
 
 def pagina_audiencias():
@@ -276,8 +277,9 @@ def pagina_audiencias():
     texto = audiencias.formatar_texto(resultado)
     caixa_texto_copiavel(texto, f"relatorio_audiencias_{empresa}.txt")
 
+    periodo_arquivo = f"{periodo_ini.strftime('%d.%m')}_a_{periodo_fim.strftime('%d.%m')}"
     pdf_bytes = gerar_pdf_audiencias(resultado)
-    botao_pdf(pdf_bytes, f"relatorio_audiencias_{empresa}.pdf")
+    botao_pdf(pdf_bytes, f"relatorio_audiencias_{empresa}_{periodo_arquivo}.pdf")
 
 
 def pagina_gerenciar_valores():
