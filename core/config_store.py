@@ -24,6 +24,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "IMÓVEL": 70.0,
     },
     "audiencias": {},
+    "cnpjs": {},
 }
 
 
@@ -35,6 +36,7 @@ def load_config() -> Dict[str, Any]:
         data = json.load(f)
     data.setdefault("laudos", {})
     data.setdefault("audiencias", {})
+    data.setdefault("cnpjs", {})
     return data
 
 
@@ -100,4 +102,41 @@ def remove_config_audiencia(config: Dict[str, Any], empresa: str) -> None:
     for nome_existente in list(config.get("audiencias", {}).keys()):
         if normalize(nome_existente) == alvo:
             del config["audiencias"][nome_existente]
+    save_config(config)
+
+
+def get_cnpj_empresa(config: Dict[str, Any], empresa: str) -> str:
+    """Retorna o CNPJ cadastrado para a empresa (usado para preencher o
+    campo automaticamente), ou "" se não houver nenhum cadastrado. A busca
+    ignora acento/caixa/espaço e também casa por "contém" (ex: empresa da
+    planilha "WN FAST" encontra o cadastro "FAST")."""
+    alvo = normalize(empresa)
+    cnpjs = config.get("cnpjs", {})
+    for nome, cnpj in cnpjs.items():
+        if normalize(nome) == alvo:
+            return cnpj
+    for nome, cnpj in cnpjs.items():
+        nome_norm = normalize(nome)
+        if nome_norm and (nome_norm in alvo or alvo in nome_norm):
+            return cnpj
+    return ""
+
+
+def set_cnpj_empresa(config: Dict[str, Any], empresa: str, cnpj: str) -> None:
+    config.setdefault("cnpjs", {})
+    alvo = normalize(empresa)
+    for nome_existente in list(config["cnpjs"].keys()):
+        if normalize(nome_existente) == alvo:
+            config["cnpjs"][nome_existente] = cnpj
+            save_config(config)
+            return
+    config["cnpjs"][empresa] = cnpj
+    save_config(config)
+
+
+def remove_cnpj_empresa(config: Dict[str, Any], empresa: str) -> None:
+    alvo = normalize(empresa)
+    for nome_existente in list(config.get("cnpjs", {}).keys()):
+        if normalize(nome_existente) == alvo:
+            del config["cnpjs"][nome_existente]
     save_config(config)

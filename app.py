@@ -13,9 +13,12 @@ import streamlit as st
 from core import audiencias, laudos
 from core.auth import botao_sair, exigir_login
 from core.config_store import (
+    get_cnpj_empresa,
     load_config,
+    remove_cnpj_empresa,
     remove_config_audiencia,
     remove_valor_laudo,
+    set_cnpj_empresa,
     set_config_audiencia,
     set_valor_laudo,
 )
@@ -106,7 +109,11 @@ def pagina_laudos():
         col1, col2, col3 = st.columns(3)
         with col1:
             empresa = st.selectbox("Empresa", empresas)
-            cnpj = st.text_input("CNPJ (opcional, aparece no cabeçalho)", "")
+            cnpj = st.text_input(
+                "CNPJ (preenchido automaticamente, pode editar)",
+                value=get_cnpj_empresa(config, empresa),
+                key=f"cnpj_laudo_{empresa}",
+            )
         with col2:
             hoje = date.today()
             mes = st.selectbox("Mês de início do período (dia 20)", MESES, index=hoje.month - 1)
@@ -206,7 +213,11 @@ def pagina_audiencias():
         col1, col2 = st.columns(2)
         with col1:
             empresa = st.selectbox("Empresa", empresas, key="empresa_aud")
-            cnpj = st.text_input("CNPJ (opcional, aparece no cabeçalho)", "", key="cnpj_aud")
+            cnpj = st.text_input(
+                "CNPJ (preenchido automaticamente, pode editar)",
+                value=get_cnpj_empresa(config, empresa),
+                key=f"cnpj_aud_{empresa}",
+            )
         with col2:
             hoje = date.today()
             mes = st.selectbox("Mês", MESES, index=hoje.month - 1, key="mes_aud")
@@ -342,6 +353,43 @@ def pagina_gerenciar_valores():
         if st.form_submit_button("Adicionar", type="primary"):
             if nova_empresa.strip():
                 set_config_audiencia(config, nova_empresa.strip(), novo_valor)
+                st.rerun()
+            else:
+                st.error("Informe o nome da empresa.")
+
+    st.divider()
+    st.subheader("🏢 CNPJ das empresas")
+    st.caption(
+        "Preenche automaticamente o campo CNPJ ao gerar relatório de laudos ou "
+        "audiências para essa empresa (continua editável na hora de gerar)."
+    )
+
+    cnpjs_cfg = config.get("cnpjs", {})
+    if not cnpjs_cfg:
+        st.info("Nenhum CNPJ cadastrado ainda.")
+    for empresa_nome, cnpj_atual in list(cnpjs_cfg.items()):
+        with st.container(border=True):
+            c1, c2, c3 = st.columns([3, 3, 1])
+            c1.markdown(f"**{empresa_nome}**")
+            novo_cnpj = c2.text_input(
+                "CNPJ", value=cnpj_atual, key=f"cnpj_cfg_{empresa_nome}", label_visibility="collapsed"
+            )
+            c3.write("")
+            if c3.button("🗑️ Remover", key=f"rm_cnpj_{empresa_nome}", use_container_width=True):
+                remove_cnpj_empresa(config, empresa_nome)
+                st.rerun()
+            if novo_cnpj != cnpj_atual:
+                set_cnpj_empresa(config, empresa_nome, novo_cnpj)
+                st.rerun()
+
+    with st.form("novo_cnpj_empresa", border=True):
+        st.markdown("**➕ Adicionar CNPJ de uma empresa**")
+        c1, c2 = st.columns(2)
+        nome_para_cnpj = c1.text_input("Nome da empresa (como aparece na planilha)")
+        cnpj_novo = c2.text_input("CNPJ")
+        if st.form_submit_button("Adicionar", type="primary"):
+            if nome_para_cnpj.strip():
+                set_cnpj_empresa(config, nome_para_cnpj.strip(), cnpj_novo.strip())
                 st.rerun()
             else:
                 st.error("Informe o nome da empresa.")
