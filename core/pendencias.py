@@ -31,10 +31,21 @@ CHAVE_DUPLICIDADE = ["DATA", "EMPRESA", "TIPO DE COBRANÇA", "VALOR"]
 # aparecia como pendente mesmo já paga.
 _PRIORIDADE_PAGO = {"SIM": 0}  # tudo que não é SIM cai no default (1); vazio cai em 2
 
-# Uma linha conta como pendente sempre que o campo PAGO não for exatamente
-# "SIM" (cobre "NÃO", "EM ATRASO", "ACORDO", "PENDENTE" e também célula
-# vazia — nesse último caso vale conferir manualmente antes de enviar).
+# Uma linha só conta como pendente quando o campo PAGO tem um status
+# explícito diferente de "SIM" (cobre "NÃO", "EM ATRASO", "ACORDO",
+# "PENDENTE", "VERIFICAR", etc.). Célula vazia NÃO conta como pendente —
+# normalmente é um lançamento antigo que nunca chegou a ser marcado, não
+# uma cobrança em aberto de verdade.
 STATUS_PAGO_OK = normalize("SIM")
+
+
+def _e_pendente(pago_valor) -> bool:
+    if pago_valor is None or (isinstance(pago_valor, float) and pd.isna(pago_valor)):
+        return False
+    texto = normalize(pago_valor)
+    if not texto:
+        return False
+    return texto != STATUS_PAGO_OK
 
 PIX_EXIMIA = "✅ PIX: CPNJ: 655965130001-52 \nEXIMIA CAMARA DE CONCILIACAO MEDIACAO & ARBITRAGEM LTDA"
 PIX_ELITE = "✅ PIX: CPNJ 51.673.385/0001-99\nELITE MEDIAÇÕES LTDA"
@@ -125,9 +136,10 @@ def listar_empresas(df: pd.DataFrame) -> List[str]:
 
 
 def listar_empresas_com_pendencia(df: pd.DataFrame) -> List[str]:
-    """Só as empresas que têm pelo menos uma linha pendente (PAGO diferente
-    de 'SIM', valor válido e maior que zero) — usado para o menu da tela,
-    já que não faz sentido listar quem não deve nada."""
+    """Só as empresas que têm pelo menos uma linha pendente (PAGO com um
+    status explícito diferente de 'SIM', valor válido e maior que zero) —
+    usado para o menu da tela, já que não faz sentido listar quem não
+    deve nada."""
     col_empresa = _col(df, "EMPRESA")
     col_valor = _col(df, "VALOR")
     col_pago = _col_optional(df, "PAGO")
@@ -137,7 +149,7 @@ def listar_empresas_com_pendencia(df: pd.DataFrame) -> List[str]:
         empresa = row.get(col_empresa)
         if empresa is None or not str(empresa).strip():
             continue
-        if col_pago is not None and normalize(row.get(col_pago)) == STATUS_PAGO_OK:
+        if col_pago is None or not _e_pendente(row.get(col_pago)):
             continue
         valor = _parse_valor(row.get(col_valor))
         if valor is None or valor <= 0:
@@ -195,10 +207,8 @@ def gerar_mensagens(df: pd.DataFrame, empresa: str) -> List[MensagemPendencia]:
     for _, row in df.iterrows():
         if normalize(row.get(col_empresa)) != alvo_empresa:
             continue
-        if col_pago is not None:
-            pago_valor = row.get(col_pago)
-            if normalize(pago_valor) == STATUS_PAGO_OK:
-                continue  # já pago, não entra na cobrança
+        if col_pago is None or not _e_pendente(row.get(col_pago)):
+            continue  # já pago, sem status marcado, ou sem coluna PAGO — não entra na cobrança
         tipo = row.get(col_tipo)
         valor_float = _parse_valor(row.get(col_valor))
         if tipo is None or valor_float is None or valor_float <= 0:

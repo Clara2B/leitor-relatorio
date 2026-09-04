@@ -157,9 +157,15 @@ código.
 **Cobrança de Pendências**
 - Só a ELITE usa essa planilha de controle de pagamento (colunas `EMPRESA`,
   `TIPO DE COBRANÇA`, `VALOR` ou `VALOR FALTANTE`, e opcionalmente `PAGO`).
-- Conta como pendente qualquer linha em que `PAGO` não seja exatamente
-  `SIM` (cobre `NÃO`, `EM ATRASO`, `ACORDO`, `PENDENTE` e célula vazia —
-  nesse último caso vale conferir antes de enviar).
+- Conta como pendente qualquer linha em que `PAGO` tenha um status
+  explícito diferente de `SIM` (cobre `NÃO`, `EM ATRASO`, `ACORDO`,
+  `PENDENTE`, `VERIFICAR` etc). Célula de `PAGO` **vazia não conta como
+  pendente** — normalmente é um lançamento antigo que nunca chegou a ser
+  marcado, não uma cobrança em aberto de verdade.
+- Quando o mesmo lançamento (mesma data + empresa + tipo + valor) aparece
+  duas vezes na planilha — por exemplo uma aba antiga e uma aba nova
+  guardando o mesmo registro —, o programa fica com a linha de PAGO mais
+  definitiva: `SIM` sempre vence célula vazia ou outro status.
 - Cada linha pendente é classificada automaticamente por quem cobra: tipo
   de cobrança com "AUDIÊNCIA" no texto vai para a EXIMIA; qualquer outro
   tipo (LAUDOS, MENSALIDADE, etc.) vai para a ELITE. Se a empresa tiver
