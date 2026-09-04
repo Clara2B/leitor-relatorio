@@ -499,9 +499,9 @@ def pagina_pendencias():
         st.error(f"Não consegui ler a planilha: {e}")
         return
 
-    empresas = pendencias.listar_empresas(df)
+    empresas = pendencias.listar_empresas_com_pendencia(df)
     if not empresas:
-        st.warning("Não encontrei nenhuma empresa na planilha.")
+        st.success("✅ Nenhuma empresa com pendência nesta planilha.")
         return
 
     with st.container(border=True):

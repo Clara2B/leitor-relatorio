@@ -59,8 +59,34 @@ def carregar_planilha(path: str) -> pd.DataFrame:
 
 
 def listar_empresas(df: pd.DataFrame) -> List[str]:
+    """Todas as empresas que aparecem na planilha, tenham pendência ou não."""
     col = _col(df, "EMPRESA")
     return sorted({str(v).strip() for v in df[col].dropna() if str(v).strip()})
+
+
+def listar_empresas_com_pendencia(df: pd.DataFrame) -> List[str]:
+    """Só as empresas que têm pelo menos uma linha pendente (PAGO diferente
+    de 'SIM', valor válido e maior que zero) — usado para o menu da tela,
+    já que não faz sentido listar quem não deve nada."""
+    col_empresa = _col(df, "EMPRESA")
+    col_valor = _col(df, "VALOR")
+    col_pago = _col_optional(df, "PAGO")
+
+    empresas: set = set()
+    for _, row in df.iterrows():
+        empresa = row.get(col_empresa)
+        if empresa is None or not str(empresa).strip():
+            continue
+        if col_pago is not None and normalize(row.get(col_pago)) == STATUS_PAGO_OK:
+            continue
+        valor = row.get(col_valor)
+        try:
+            if valor is None or float(valor) <= 0:
+                continue
+        except (TypeError, ValueError):
+            continue
+        empresas.add(str(empresa).strip())
+    return sorted(empresas)
 
 
 def _col(df: pd.DataFrame, nome: str) -> str:
