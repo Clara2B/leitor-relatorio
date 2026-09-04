@@ -160,7 +160,7 @@ st.markdown(
         border-bottom-color: var(--accent) !important;
     }
     [data-testid="stTabs"] [data-testid="stTab"][aria-selected="true"] p {
-        color: var(--brand) !important;
+        color: var(--accent) !important;
         font-weight: 700 !important;
     }
     [data-testid="stTabs"] [data-baseweb="tab-highlight"] {
