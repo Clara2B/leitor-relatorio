@@ -10,7 +10,7 @@ from datetime import date
 
 import streamlit as st
 
-from core import audiencias, laudos
+from core import audiencias, laudos, pendencias
 from core.auth import botao_sair, exigir_login
 from core.config_store import (
     get_cnpj_empresa,
@@ -394,6 +394,73 @@ def pagina_audiencias():
     botao_pdf(pdf_bytes, f"relatorio_audiencias_{empresa}_{periodo_arquivo}.pdf")
 
 
+def pagina_pendencias():
+    st.header("💬 Cobrança de Pendências")
+    st.caption(
+        "Envie a planilha de controle de pagamento (só a ELITE tem) e escolha a "
+        "empresa — o programa monta a mensagem de cobrança pronta para o WhatsApp."
+    )
+
+    arquivo = st.file_uploader(
+        "Planilha de controle de pagamento/pendência (.xlsx)", type=["xlsx"], key="pendencias_upload"
+    )
+    if not arquivo:
+        st.info("⬆️ Envie a planilha para continuar.")
+        return
+
+    try:
+        path = salvar_temp(arquivo)
+        df = pendencias.carregar_planilha(path)
+    except Exception as e:
+        st.error(f"Não consegui ler a planilha: {e}")
+        return
+
+    empresas = pendencias.listar_empresas(df)
+    if not empresas:
+        st.warning("Não encontrei nenhuma empresa na planilha.")
+        return
+
+    with st.container(border=True):
+        st.markdown("##### Filtros")
+        empresa = st.selectbox("Empresa", empresas, key="empresa_pendencias")
+        gerar = st.button("🔎 Gerar mensagem", type="primary", key="gerar_pendencias", use_container_width=True)
+
+    if not gerar:
+        return
+
+    try:
+        mensagens = pendencias.gerar_mensagens(df, empresa)
+    except ValueError as e:
+        st.error(str(e))
+        return
+
+    if not mensagens:
+        st.success(f"✅ **{empresa}** não tem nenhuma pendência em aberto nesta planilha.")
+        return
+
+    st.markdown(f"#### Pendências encontradas — {empresa.upper()}")
+    if len(mensagens) > 1:
+        st.info(
+            "Essa empresa tem pendência com **mais de um cobrador** (EXIMIA e ELITE) — "
+            "gerei uma mensagem separada para cada uma, já que o PIX de recebimento é diferente."
+        )
+
+    for msg in mensagens:
+        st.markdown(f"##### {'⚖️ EXIMIA (audiências)' if msg.cobrador == 'EXIMIA' else '📑 ELITE (laudos/mensalidade)'}")
+        m1, m2 = st.columns(2)
+        m1.metric("Itens pendentes", len(msg.itens))
+        m2.metric("Total pendente", format_brl(msg.total))
+        texto = pendencias.formatar_texto(msg)
+        st.code(texto, language=None)
+        st.download_button(
+            "⬇️ Baixar como .txt",
+            texto,
+            file_name=f"cobranca_{empresa}_{msg.cobrador}.txt",
+            key=f"download_pendencia_{msg.cobrador}",
+        )
+        st.divider()
+
+
 def pagina_gerenciar_valores():
     st.header("⚙️ Gerenciar valores")
     config = load_config()
@@ -519,13 +586,20 @@ def main():
         "Monte o relatório, copie o texto pronto ou baixe o PDF já na folha personalizada.",
     )
 
-    aba_laudos, aba_audiencias, aba_valores = st.tabs(
-        ["📑 Relatório de Laudos", "⚖️ Relatório de Audiências", "⚙️ Gerenciar valores"]
+    aba_laudos, aba_audiencias, aba_pendencias, aba_valores = st.tabs(
+        [
+            "📑 Relatório de Laudos",
+            "⚖️ Relatório de Audiências",
+            "💬 Cobrança de Pendências",
+            "⚙️ Gerenciar valores",
+        ]
     )
     with aba_laudos:
         pagina_laudos()
     with aba_audiencias:
         pagina_audiencias()
+    with aba_pendencias:
+        pagina_pendencias()
     with aba_valores:
         pagina_gerenciar_valores()
 

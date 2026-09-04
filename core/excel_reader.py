@@ -1,4 +1,6 @@
-"""Leitura genérica das planilhas .xlsx, isolando as abas de dados reais"""
+"""Leitura genérica das planilhas .xlsx, isolando as abas de dados reais
+das abas de controle/dashboard, e unificando cabeçalhos equivalentes entre
+abas diferentes."""
 from __future__ import annotations
 
 from typing import Dict, List, Optional
@@ -11,11 +13,15 @@ from core.utils import normalize
 # Algumas abas escrevem o mesmo cabeçalho com palavras diferentes (ex: as
 # abas JUN26/JUL26 da planilha de laudos usam "ENTRADA DO LAUDO" em vez de
 # "ENTRADA DE LAUDO" usado nas demais). Sem isso, essas abas viram colunas
-# separadas depois de juntar tudo, e as linhas ficam com o status "vazio" —
+# separadas depois de juntar tudo, e as linhas ficam com o valor "vazio" —
 # sendo descartadas nos filtros. Adicione aqui outras variações que
 # aparecerem no futuro (a comparação já ignora acento/caixa/espaço).
 HEADER_ALIASES = {
     normalize("ENTRADA DO LAUDO"): normalize("ENTRADA DE LAUDO"),
+    # Planilhas de fluxo de caixa: "VALOR FALTANTE" (abas mais novas) e
+    # "VALOR" (abas mais antigas) representam a mesma coisa.
+    normalize("VALOR FALTANTE"): normalize("VALOR"),
+    normalize("PAGO (SIM/NÃO)"): normalize("PAGO"),
 }
 
 
@@ -29,14 +35,12 @@ def _canonical_header(texto: str) -> str:
 
 def _find_header_row(rows: List[tuple], required_headers: List[str]) -> Optional[int]:
     """Procura, nas primeiras linhas de uma aba, aquela que contém todos os
-    cabeçalhos exigidos (comparação exata, sem normalizar, pois os
-    cabeçalhos das planilhas reais já vêm em maiúsculas)."""
+    cabeçalhos exigidos (comparação exata, não substring: evita que abas de
+    controle/dashboard com colunas parecidas sejam confundidas com abas de
+    dados reais). A comparação já ignora acento/caixa/espaço."""
     required_canonicos = [_canonical_header(h) for h in required_headers]
     for i, row in enumerate(rows[:5]):
         values = [_canonical_header(c) for c in row if c is not None]
-        # Comparação EXATA (não substring): evita que abas de controle/dashboard
-        # com colunas parecidas (ex: "TIPOS DE LAUDO", "TIPO DE LAUDO (canônicos)")
-        # sejam confundidas com abas de dados reais.
         if all(h in values for h in required_canonicos):
             return i
     return None
@@ -49,7 +53,7 @@ def load_data_sheets(
 ) -> pd.DataFrame:
     """Lê todas as abas do arquivo que contenham as colunas exigidas
     (ex: 'EMPRESA' e 'TIPO DE LAUDO') e devolve tudo empilhado num único
-    DataFrame, com uma coluna extra '_ABA' indicando de qual mês veio.
+    DataFrame, com uma coluna extra '_ABA' indicando de qual aba veio.
 
     Abas de controle/dashboard (que não têm essas colunas) são ignoradas
     automaticamente — não é preciso listar seus nomes.

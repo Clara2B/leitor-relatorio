@@ -154,6 +154,21 @@ código.
 - Se a empresa ainda não tiver valor cadastrado, o programa avisa e oferece
   um cadastro rápido na própria tela.
 
+**Cobrança de Pendências**
+- Só a ELITE usa essa planilha de controle de pagamento (colunas `EMPRESA`,
+  `TIPO DE COBRANÇA`, `VALOR` ou `VALOR FALTANTE`, e opcionalmente `PAGO`).
+- Conta como pendente qualquer linha em que `PAGO` não seja exatamente
+  `SIM` (cobre `NÃO`, `EM ATRASO`, `ACORDO`, `PENDENTE` e célula vazia —
+  nesse último caso vale conferir antes de enviar).
+- Cada linha pendente é classificada automaticamente por quem cobra: tipo
+  de cobrança com "AUDIÊNCIA" no texto vai para a EXIMIA; qualquer outro
+  tipo (LAUDOS, MENSALIDADE, etc.) vai para a ELITE. Se a empresa tiver
+  pendência dos dois ao mesmo tempo, o programa gera duas mensagens
+  separadas, uma para cada PIX.
+- A descrição de cada pendência (o texto depois do "-" na mensagem) é
+  copiada direto do `TIPO DE COBRANÇA` da planilha, só arrumando espaços
+  extras — por isso mantém a redação de quem preencheu a planilha.
+
 ## Publicar no GitHub e deixar acessível pela internet
 
 O repositório **não inclui planilhas, senha nem o banco de dados**
