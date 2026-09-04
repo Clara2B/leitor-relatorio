@@ -44,28 +44,47 @@ def exigir_login() -> bool:
 
     usuarios = _carregar_usuarios()
 
-    st.title("🔒 Acesso restrito")
+    st.markdown(
+        """
+        <style>
+        .login-wrap { max-width: 380px; margin: 4rem auto 0 auto; }
+        .login-wrap .selo { display:block; width:40px; height:4px; background:#C9A227;
+            border-radius:2px; margin: 0 auto 0.8rem auto; }
+        .login-wrap h1 { text-align:center !important; font-size:1.5rem; margin-bottom:0.2rem; }
+        .login-wrap p.sub { text-align:center; opacity:0.65; margin-bottom:1.6rem; font-size:0.9rem; }
+        </style>
+        <div class="login-wrap">
+            <span class="selo"></span>
+            <h1>🔒 Acesso restrito</h1>
+            <p class="sub">Entre com seu usuário e senha para continuar</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    if not usuarios:
-        st.warning(
-            "Nenhuma senha configurada ainda. Veja no README como configurar "
-            "`.streamlit/secrets.toml` (uso local) ou os *Secrets* do Streamlit "
-            "Cloud (uso publicado) antes de liberar o acesso."
-        )
-        return False
+    _, col_meio, _ = st.columns([1, 1.3, 1])
+    with col_meio:
+        if not usuarios:
+            st.warning(
+                "Nenhuma senha configurada ainda. Veja no README como configurar "
+                "`.streamlit/secrets.toml` (uso local) ou os *Secrets* do Streamlit "
+                "Cloud (uso publicado) antes de liberar o acesso."
+            )
+            return False
 
-    with st.form("login"):
-        usuario = st.text_input("Usuário")
-        senha = st.text_input("Senha", type="password")
-        entrar = st.form_submit_button("Entrar", type="primary")
+        with st.container(border=True):
+            with st.form("login"):
+                usuario = st.text_input("Usuário")
+                senha = st.text_input("Senha", type="password")
+                entrar = st.form_submit_button("Entrar", type="primary", use_container_width=True)
 
-    if entrar:
-        if usuarios.get(usuario) == senha:
-            st.session_state["autenticado"] = True
-            st.session_state["usuario"] = usuario
-            st.rerun()
-        else:
-            st.error("Usuário ou senha incorretos.")
+        if entrar:
+            if usuarios.get(usuario) == senha:
+                st.session_state["autenticado"] = True
+                st.session_state["usuario"] = usuario
+                st.rerun()
+            else:
+                st.error("Usuário ou senha incorretos.")
 
     return False
 

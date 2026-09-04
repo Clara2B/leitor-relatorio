@@ -27,29 +27,129 @@ from core.utils import format_brl
 
 st.set_page_config(page_title="Relatórios - Laudos e Audiências", layout="wide", page_icon="📄")
 
+NAVY = "#152A40"
+NAVY_2 = "#1F3B57"
+GOLD = "#C9A227"
+GOLD_LIGHT = "#E4C765"
+
 st.markdown(
-    """
+    f"""
     <style>
-    .bloco-metrica {
-        background: var(--background-color);
-        border: 1px solid rgba(128,128,128,0.25);
-        border-radius: 10px;
-        padding: 0.9rem 1rem;
-    }
-    div[data-testid="stMetric"] {
-        background: rgba(120,120,120,0.07);
-        border-radius: 10px;
-        padding: 0.6rem 0.8rem;
-        border: 1px solid rgba(128,128,128,0.15);
-    }
-    .aviso-tipo-sem-valor {
+    :root {{
+        --navy: {NAVY};
+        --navy-2: {NAVY_2};
+        --gold: {GOLD};
+        --gold-light: {GOLD_LIGHT};
+    }}
+
+    /* Banner de topo */
+    .app-banner {{
+        background: linear-gradient(120deg, var(--navy) 0%, var(--navy-2) 100%);
+        border-radius: 14px;
+        padding: 1.6rem 2rem;
+        margin-bottom: 1.4rem;
+        box-shadow: 0 6px 18px rgba(21, 42, 64, 0.25);
+    }}
+    .app-banner .selo {{
+        display: inline-block;
+        width: 34px; height: 4px;
+        background: var(--gold);
+        border-radius: 2px;
+        margin-bottom: 0.6rem;
+    }}
+    .app-banner h1 {{
+        color: #fff;
+        font-size: 1.7rem;
+        letter-spacing: 0.03em;
+        margin: 0 0 0.3rem 0;
+        font-weight: 700;
+    }}
+    .app-banner p {{
+        color: #C9D3DC;
+        margin: 0;
+        font-size: 0.95rem;
+    }}
+
+    /* Abas */
+    .stTabs [data-baseweb="tab-list"] {{
+        gap: 4px;
+        border-bottom: 2px solid rgba(21,42,64,0.12);
+    }}
+    .stTabs [data-baseweb="tab"] {{
+        height: 3rem;
+        font-weight: 600;
+        color: rgba(120,120,120,0.9);
+    }}
+    .stTabs [aria-selected="true"] {{
+        color: var(--navy) !important;
+        border-bottom: 3px solid var(--gold) !important;
+    }}
+
+    /* Botões primários (inclui os de dentro de formulários: kind
+    "primary" para st.button e "primaryFormSubmit" para
+    st.form_submit_button) */
+    button[kind*="rimary"] {{
+        background-color: var(--navy) !important;
+        border: 1px solid var(--navy) !important;
+        font-weight: 600 !important;
+    }}
+    button[kind*="rimary"]:hover {{
+        background-color: var(--navy-2) !important;
+        border-color: var(--gold) !important;
+        color: var(--gold-light) !important;
+    }}
+
+    /* Cartões / containers com borda */
+    div[data-testid="stVerticalBlockBorderWrapper"] {{
+        border-radius: 12px !important;
+    }}
+
+    /* Métricas */
+    div[data-testid="stMetric"] {{
+        background: rgba(21, 42, 64, 0.04);
+        border-radius: 12px;
+        padding: 0.7rem 1rem;
+        border-left: 4px solid var(--gold);
+    }}
+    div[data-testid="stMetricLabel"] {{
+        font-weight: 600;
+        opacity: 0.75;
+    }}
+
+    /* Avisos de tipo sem valor */
+    .aviso-tipo-sem-valor {{
         border-left: 4px solid #e0a800;
         padding-left: 0.7rem;
-    }
+    }}
+
+    /* Cabeçalhos de seção com traço dourado */
+    h2, h3, h4, h5 {{
+        border-left: 3px solid var(--gold);
+        padding-left: 0.6rem;
+    }}
+
+    /* Tela de login */
+    .login-card h1 {{
+        color: var(--navy);
+        font-size: 1.4rem;
+    }}
     </style>
     """,
     unsafe_allow_html=True,
 )
+
+
+def banner(titulo: str, subtitulo: str):
+    st.markdown(
+        f"""
+        <div class="app-banner">
+            <span class="selo"></span>
+            <h1>{titulo}</h1>
+            <p>{subtitulo}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 MESES = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -402,8 +502,10 @@ def main():
         return
     botao_sair()
 
-    st.title("📄 Relatórios — Laudos e Audiências")
-    st.caption("Monte o relatório, copie o texto pronto e cole direto no seu documento final.")
+    banner(
+        "📄 Relatórios — Laudos e Audiências",
+        "Monte o relatório, copie o texto pronto ou baixe o PDF já na folha personalizada.",
+    )
 
     aba_laudos, aba_audiencias, aba_valores = st.tabs(
         ["📑 Relatório de Laudos", "⚖️ Relatório de Audiências", "⚙️ Gerenciar valores"]

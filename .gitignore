@@ -8,3 +8,7 @@ venv/
 *.xls
 *.csv
 .claude/
+
+# Banco de dados local (dado, não código) — cada instalação tem o seu.
+data/
+config.json.importado

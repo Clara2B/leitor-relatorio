@@ -25,6 +25,22 @@ streamlit run app.py
 Isso abre uma aba no navegador com o programa. Para fechar, feche a aba e
 aperte `Ctrl+C` no terminal.
 
+### Deixar acessível para outros computadores da rede (vários funcionários)
+
+Por padrão o programa só responde no próprio computador (`localhost`). Para
+que outras pessoas da empresa acessem pelo navegador delas, rode assim no
+computador/servidor que vai ficar sempre ligado:
+
+```bash
+streamlit run app.py --server.address 0.0.0.0 --server.port 8501
+```
+
+Descubra o IP desse computador na rede (`ipconfig` no Windows, procure por
+"Endereço IPv4") e passe para os funcionários o endereço
+`http://IP-DO-COMPUTADOR:8501` — cada um abre esse link no navegador dele.
+Como é o mesmo programa rodando, todos usam o mesmo banco de dados (veja a
+seção "Banco de dados" abaixo): quem editar um valor, todo mundo já vê.
+
 ## Login (o código é público, o acesso não é)
 
 Como este repositório é público no GitHub, o programa pede usuário e senha
@@ -71,31 +87,46 @@ folha A4 (retrato) — não precisa mexer em código. O texto do relatório
 (empresa, período, tabela, total) é desenhado por cima dessa imagem
 automaticamente.
 
-## Como editar os valores (tipos de laudo e empresas de audiência)
+## Como editar os valores (tipos de laudo, empresas de audiência, CNPJs)
 
-Vá em **Gerenciar valores**, no menu à esquerda. Lá dá para:
+Vá em **Gerenciar valores**, na aba do topo. Lá dá para:
 
 - Ver, editar e remover o valor de cada tipo de laudo (ex: AUTO = R$ 40,00).
 - Adicionar um tipo de laudo novo.
-- Ver, editar e remover a modalidade de contratação e o valor por audiência
-  de cada empresa.
+- Ver, editar e remover o valor por audiência de cada empresa.
 - Adicionar uma empresa nova de audiência.
+- Ver, editar e remover o CNPJ de cada empresa (usado para preencher o
+  campo automaticamente na hora de gerar o relatório).
 
-Tudo isso é salvo automaticamente no arquivo `config.json`, nesta mesma
-pasta — não precisa mexer em código. Se preferir editar esse arquivo
-diretamente (por exemplo, para colar vários valores de uma vez), o formato é:
+Tudo isso é salvo direto no banco de dados (veja a seção seguinte) — não
+precisa mexer em nenhum arquivo nem reiniciar o programa.
 
-```json
-{
-  "laudos": {
-    "AUTO": 40.0,
-    "AUTO-BALÃO": 60.0
-  },
-  "audiencias": {
-    "ANGITU": { "modalidade": "Avulso", "valor": 400.0 }
-  }
-}
-```
+## Banco de dados (vários funcionários, um só lugar de verdade)
+
+O programa guarda os tipos de laudo, empresas de audiência e CNPJs num
+banco de dados local: `data/leitor_relatorio.sqlite3`.
+
+**O que isso muda na prática:** o programa roda uma vez só (num computador
+ou servidor da empresa, sempre ligado) e todo mundo acessa pelo navegador
+apontando para o endereço desse computador na rede. Como todos usam o
+mesmo processo e o mesmo arquivo de banco, quando uma pessoa cadastra ou
+edita um valor em "Gerenciar valores", as outras já veem a mudança no
+próprio navegador delas, sem precisar recarregar nada.
+
+Isso é diferente de cada pessoa rodar `streamlit run app.py` no seu
+próprio computador — nesse caso, cada uma teria seu próprio banco
+(`data/`), separado das demais.
+
+**Primeira vez que o programa roda nesta pasta:** se existir um
+`config.json` de uma instalação anterior, o programa importa os dados dele
+automaticamente para o banco e renomeia o arquivo para
+`config.json.importado` (só acontece uma vez). Se não existir, o banco já
+nasce com os 6 tipos de laudo padrão.
+
+**Backup:** basta copiar o arquivo `data/leitor_relatorio.sqlite3` para
+outro lugar de vez em quando. Ele não é enviado ao GitHub (está no
+`.gitignore`, junto com as planilhas) — é dado de cada instalação, não
+código.
 
 ## Regras aplicadas
 
@@ -115,19 +146,19 @@ diretamente (por exemplo, para colar vários valores de uma vez), o formato é:
 - Período: quinzenal — dia 1 ao dia 15, ou dia 16 ao último dia do mês
   (você escolhe o mês/ano e a quinzena na tela).
 - Filtra só por empresa (todo relatório de audiência é sempre solicitação).
-- Modalidade de contratação e valor por audiência **não vêm da planilha** —
-  são cadastrados por empresa em "Gerenciar valores", porque a planilha de
-  agendamento não tem essas colunas.
-- O relatório mostra: período, modalidade, valor por audiência, quantidade
-  de clientes no período, a lista de clientes e o total (quantidade × valor).
-- Se a empresa ainda não tiver modalidade/valor cadastrados, o programa avisa
-  e oferece um cadastro rápido na própria tela.
+- O valor por audiência **não vem da planilha** — é cadastrado por empresa
+  em "Gerenciar valores", porque a planilha de agendamento não tem essa
+  coluna.
+- O relatório mostra: período, valor por audiência, quantidade de clientes
+  no período, a lista de clientes e o total (quantidade × valor).
+- Se a empresa ainda não tiver valor cadastrado, o programa avisa e oferece
+  um cadastro rápido na própria tela.
 
 ## Publicar no GitHub e deixar acessível pela internet
 
-O repositório **não inclui planilhas nem dados de cliente** (`.gitignore`
-bloqueia `.xlsx`/`.csv` e o `secrets.toml` com a senha) — só o código e a
-tabela de valores (`config.json`).
+O repositório **não inclui planilhas, senha nem o banco de dados**
+(`.gitignore` bloqueia `.xlsx`/`.csv`, `secrets.toml` e a pasta `data/`) —
+só o código do programa.
 
 **1. Enviar o código para o GitHub** (repositório vazio já criado no site):
 
