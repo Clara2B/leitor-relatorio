@@ -33,6 +33,25 @@ PIX_ELITE = "✅ PIX: CPNJ 51.673.385/0001-99\nELITE MEDIAÇÕES LTDA"
 _RE_INTERVALO_DATAS = re.compile(r"(\d{1,2}/\d{1,2}(?:/\d{2,4})?)\s*-\s*(\d{1,2}/\d{1,2}(?:/\d{2,4})?)")
 
 
+def _parse_valor(valor) -> Optional[float]:
+    """Converte o valor da célula em número, mesmo quando foi digitado como
+    texto (ex: 'R$ 3.200,00' em vez de 3200) — evita perder a linha da
+    pendência só porque alguém formatou o valor na mão."""
+    if valor is None:
+        return None
+    if isinstance(valor, (int, float)):
+        return float(valor)
+    texto = str(valor).strip()
+    if not texto:
+        return None
+    texto = texto.replace("R$", "").replace("r$", "").strip()
+    texto = texto.replace(".", "").replace(",", ".")
+    try:
+        return float(texto)
+    except ValueError:
+        return None
+
+
 @dataclass
 class ItemPendencia:
     descricao: str
@@ -79,11 +98,8 @@ def listar_empresas_com_pendencia(df: pd.DataFrame) -> List[str]:
             continue
         if col_pago is not None and normalize(row.get(col_pago)) == STATUS_PAGO_OK:
             continue
-        valor = row.get(col_valor)
-        try:
-            if valor is None or float(valor) <= 0:
-                continue
-        except (TypeError, ValueError):
+        valor = _parse_valor(row.get(col_valor))
+        if valor is None or valor <= 0:
             continue
         empresas.add(str(empresa).strip())
     return sorted(empresas)
@@ -143,14 +159,8 @@ def gerar_mensagens(df: pd.DataFrame, empresa: str) -> List[MensagemPendencia]:
             if normalize(pago_valor) == STATUS_PAGO_OK:
                 continue  # já pago, não entra na cobrança
         tipo = row.get(col_tipo)
-        valor = row.get(col_valor)
-        if tipo is None or valor is None:
-            continue
-        try:
-            valor_float = float(valor)
-        except (TypeError, ValueError):
-            continue
-        if valor_float <= 0:
+        valor_float = _parse_valor(row.get(col_valor))
+        if tipo is None or valor_float is None or valor_float <= 0:
             continue
 
         cobrador = _classificar_cobrador(tipo)
