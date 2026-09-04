@@ -5,8 +5,10 @@ Rodar com:  streamlit run app.py
 """
 from __future__ import annotations
 
+import base64
 import tempfile
 from datetime import date
+from pathlib import Path
 
 import streamlit as st
 
@@ -27,124 +29,186 @@ from core.utils import format_brl
 
 st.set_page_config(page_title="Relatórios - Laudos e Audiências", layout="wide", page_icon="📄")
 
-NAVY = "#152A40"
-NAVY_2 = "#1F3B57"
-GOLD = "#C9A227"
-GOLD_LIGHT = "#E4C765"
+ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 
+
+@st.cache_data(show_spinner=False)
+def _logo_base64(nome_arquivo: str) -> str:
+    caminho = ASSETS_DIR / nome_arquivo
+    if not caminho.exists():
+        return ""
+    return base64.b64encode(caminho.read_bytes()).decode("ascii")
+
+
+LOGO_ELITE = _logo_base64("logo_elite_compact.png")
+LOGO_EXIMIA = _logo_base64("logo_eximia_compact.png")
+
+# Tema neutro (preto/branco/cinza) no modo geral. As abas de Laudos e de
+# Audiências sobrescrevem essas variáveis dentro do próprio painel da aba
+# (usando a ordem das abas no DOM — não precisa de JavaScript), assumindo a
+# identidade visual da ELITE e da EXIMIA respectivamente. Pendências e
+# Gerenciar valores não têm sobrescrita: ficam no neutro.
 st.markdown(
-    f"""
+    """
     <style>
-    :root {{
-        --navy: {NAVY};
-        --navy-2: {NAVY_2};
-        --gold: {GOLD};
-        --gold-light: {GOLD_LIGHT};
-    }}
+    :root {
+        --brand: #16171A;
+        --brand-2: #34363B;
+        --accent: #9AA1AC;
+        --accent-light: #C7CCD3;
+        --accent-wash: rgba(22,23,26,0.05);
+    }
 
-    /* Banner de topo */
-    .app-banner {{
-        background: linear-gradient(120deg, var(--navy) 0%, var(--navy-2) 100%);
+    /* 1ª aba (Laudos) = identidade ELITE */
+    [data-testid="stTabPanel"]:nth-of-type(1) {
+        --brand: #072652;
+        --brand-2: #123F6E;
+        --accent: #C9A227;
+        --accent-light: #E4C765;
+        --accent-wash: rgba(201,162,39,0.08);
+    }
+    /* 2ª aba (Audiências) = identidade EXIMIA */
+    [data-testid="stTabPanel"]:nth-of-type(2) {
+        --brand: #1A2946;
+        --brand-2: #2C3F63;
+        --accent: #B08D57;
+        --accent-light: #CBB07F;
+        --accent-wash: rgba(176,141,87,0.08);
+    }
+
+    /* Banner de topo do app (fora das abas — sempre neutro) */
+    .app-banner {
+        background: linear-gradient(120deg, var(--brand) 0%, var(--brand-2) 100%);
         border-radius: 14px;
         padding: 1.6rem 2rem;
         margin-bottom: 1.4rem;
-        box-shadow: 0 6px 18px rgba(21, 42, 64, 0.25);
-    }}
-    .app-banner .selo {{
+        box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    }
+    .app-banner .selo {
         display: inline-block;
         width: 34px; height: 4px;
-        background: var(--gold);
+        background: var(--accent);
         border-radius: 2px;
         margin-bottom: 0.6rem;
-    }}
-    .app-banner h1 {{
+    }
+    .app-banner h1 {
         color: #fff;
         font-size: 1.7rem;
         letter-spacing: 0.03em;
         margin: 0 0 0.3rem 0;
         font-weight: 700;
-    }}
-    .app-banner p {{
-        color: #C9D3DC;
+    }
+    .app-banner p {
+        color: #D6D8DB;
         margin: 0;
         font-size: 0.95rem;
-    }}
+    }
+
+    /* Banner de marca dentro de cada aba (logo real + cor da empresa) */
+    .marca-banner {
+        display: flex;
+        align-items: center;
+        gap: 1.1rem;
+        background: linear-gradient(120deg, var(--brand) 0%, var(--brand-2) 100%);
+        border-radius: 14px;
+        padding: 1.1rem 1.4rem;
+        margin-bottom: 1.2rem;
+    }
+    .marca-banner .chip {
+        background: #fff;
+        border-radius: 10px;
+        padding: 0.5rem 0.9rem;
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+    .marca-banner .chip img {
+        height: 34px;
+        display: block;
+    }
+    .marca-banner h2 {
+        color: #fff !important;
+        border-left: none !important;
+        padding-left: 0 !important;
+        margin: 0 !important;
+        font-size: 1.3rem !important;
+        font-weight: 700 !important;
+    }
+    .marca-banner p {
+        color: #D6D8DB;
+        margin: 0.15rem 0 0 0;
+        font-size: 0.88rem;
+    }
 
     /* Abas — seletores por data-testid (mais estáveis que as classes
     geradas) e !important em tudo, para não deixar nenhuma cor padrão do
     tema do Streamlit (inclusive o vermelho de foco/seleção) vazar por
-    cima do visual navy/dourado. */
-    [data-testid="stTabs"] [data-baseweb="tab-list"] {{
+    cima do visual. */
+    [data-testid="stTabs"] [data-baseweb="tab-list"] {
         gap: 4px;
-        border-bottom: 2px solid rgba(21,42,64,0.15) !important;
-    }}
-    [data-testid="stTabs"] [data-testid="stTab"] {{
+        border-bottom: 2px solid rgba(0,0,0,0.12) !important;
+    }
+    [data-testid="stTabs"] [data-testid="stTab"] {
         height: 3rem;
         font-weight: 600;
         border-bottom: 3px solid transparent !important;
-    }}
-    [data-testid="stTabs"] [data-testid="stTab"] p {{
+    }
+    [data-testid="stTabs"] [data-testid="stTab"] p {
         color: #8a95a3 !important;
-    }}
-    [data-testid="stTabs"] [data-testid="stTab"][aria-selected="true"] {{
-        border-bottom-color: var(--gold) !important;
-    }}
-    [data-testid="stTabs"] [data-testid="stTab"][aria-selected="true"] p {{
-        color: var(--gold) !important;
+    }
+    [data-testid="stTabs"] [data-testid="stTab"][aria-selected="true"] {
+        border-bottom-color: var(--accent) !important;
+    }
+    [data-testid="stTabs"] [data-testid="stTab"][aria-selected="true"] p {
+        color: var(--brand) !important;
         font-weight: 700 !important;
-    }}
-    [data-testid="stTabs"] [data-baseweb="tab-highlight"] {{
-        background-color: var(--gold) !important;
-    }}
+    }
+    [data-testid="stTabs"] [data-baseweb="tab-highlight"] {
+        background-color: var(--accent) !important;
+    }
 
     /* Botões primários (inclui os de dentro de formulários: kind
     "primary" para st.button e "primaryFormSubmit" para
     st.form_submit_button) */
-    button[kind*="rimary"] {{
-        background-color: var(--navy) !important;
-        border: 1px solid var(--navy) !important;
+    button[kind*="rimary"] {
+        background-color: var(--brand) !important;
+        border: 1px solid var(--brand) !important;
         font-weight: 600 !important;
-    }}
-    button[kind*="rimary"]:hover {{
-        background-color: var(--navy-2) !important;
-        border-color: var(--gold) !important;
-        color: var(--gold-light) !important;
-    }}
+    }
+    button[kind*="rimary"]:hover {
+        background-color: var(--brand-2) !important;
+        border-color: var(--accent) !important;
+        color: var(--accent-light) !important;
+    }
 
     /* Cartões / containers com borda */
-    div[data-testid="stVerticalBlockBorderWrapper"] {{
+    div[data-testid="stVerticalBlockBorderWrapper"] {
         border-radius: 12px !important;
-    }}
+    }
 
     /* Métricas */
-    div[data-testid="stMetric"] {{
-        background: rgba(21, 42, 64, 0.04);
+    div[data-testid="stMetric"] {
+        background: var(--accent-wash);
         border-radius: 12px;
         padding: 0.7rem 1rem;
-        border-left: 4px solid var(--gold);
-    }}
-    div[data-testid="stMetricLabel"] {{
+        border-left: 4px solid var(--accent);
+    }
+    div[data-testid="stMetricLabel"] {
         font-weight: 600;
         opacity: 0.75;
-    }}
+    }
 
     /* Avisos de tipo sem valor */
-    .aviso-tipo-sem-valor {{
+    .aviso-tipo-sem-valor {
         border-left: 4px solid #e0a800;
         padding-left: 0.7rem;
-    }}
+    }
 
-    /* Cabeçalhos de seção com traço dourado */
-    h2, h3, h4, h5 {{
-        border-left: 3px solid var(--gold);
+    /* Cabeçalhos de seção com traço na cor da aba */
+    h2, h3, h4, h5 {
+        border-left: 3px solid var(--accent);
         padding-left: 0.6rem;
-    }}
-
-    /* Tela de login */
-    .login-card h1 {{
-        color: var(--navy);
-        font-size: 1.4rem;
-    }}
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -152,6 +216,7 @@ st.markdown(
 
 
 def banner(titulo: str, subtitulo: str):
+    """Banner neutro do topo do app (fora das abas)."""
     st.markdown(
         f"""
         <div class="app-banner">
@@ -162,6 +227,25 @@ def banner(titulo: str, subtitulo: str):
         """,
         unsafe_allow_html=True,
     )
+
+
+def marca_banner(logo_base64: str, titulo: str, subtitulo: str):
+    """Banner com a identidade da marca (logo real + cor da empresa),
+    usado no topo de cada aba de relatório."""
+    logo_html = f'<img src="data:image/png;base64,{logo_base64}">' if logo_base64 else ""
+    st.markdown(
+        f"""
+        <div class="marca-banner">
+            <div class="chip">{logo_html}</div>
+            <div>
+                <h2>{titulo}</h2>
+                <p>{subtitulo}</p>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
 
 MESES = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -196,7 +280,7 @@ def botao_pdf(pdf_bytes: bytes, nome_arquivo: str):
 
 
 def pagina_laudos():
-    st.header("📑 Relatório de Laudos")
+    marca_banner(LOGO_ELITE, "Relatório de Laudos", "Emitido pela ELITE MEDIAÇÕES")
     config = load_config()
 
     arquivo = st.file_uploader("Planilha de laudos (.xlsx)", type=["xlsx"], key="laudos_upload")
@@ -301,7 +385,7 @@ def pagina_laudos():
 
 
 def pagina_audiencias():
-    st.header("⚖️ Relatório de Audiências")
+    marca_banner(LOGO_EXIMIA, "Relatório de Audiências", "Emitido pela EXIMIA CÂMARA DE CONCILIAÇÃO")
     config = load_config()
 
     arquivo = st.file_uploader("Planilha de audiências (.xlsx)", type=["xlsx"], key="audiencias_upload")

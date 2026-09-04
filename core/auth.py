@@ -48,7 +48,7 @@ def exigir_login() -> bool:
         """
         <style>
         .login-wrap { max-width: 380px; margin: 4rem auto 0 auto; }
-        .login-wrap .selo { display:block; width:40px; height:4px; background:#C9A227;
+        .login-wrap .selo { display:block; width:40px; height:4px; background:#9AA1AC;
             border-radius:2px; margin: 0 auto 0.8rem auto; }
         .login-wrap h1 { text-align:center !important; font-size:1.5rem; margin-bottom:0.2rem; }
         .login-wrap p.sub { text-align:center; opacity:0.65; margin-bottom:1.6rem; font-size:0.9rem; }
