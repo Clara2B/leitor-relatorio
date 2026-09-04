@@ -22,6 +22,15 @@ from core.utils import format_brl, normalize
 REQUIRED_HEADERS = ["EMPRESA", "TIPO DE COBRANÇA", "VALOR"]
 CHAVE_DUPLICIDADE = ["DATA", "EMPRESA", "TIPO DE COBRANÇA", "VALOR"]
 
+# Quando a mesma cobrança (mesma data + empresa + tipo + valor) aparece
+# duas vezes na planilha — comum quando uma aba antiga (ex: "2025") e uma
+# aba nova ("2026") guardam o mesmo lançamento — precisamos ficar com a
+# linha que tem a informação de pagamento mais definitiva, não com
+# "a primeira que aparecer no arquivo". Sem isso, uma linha antiga sem o
+# campo PAGO preenchido podia vencer uma linha marcada "SIM" e a cobrança
+# aparecia como pendente mesmo já paga.
+_PRIORIDADE_PAGO = {"SIM": 0}  # tudo que não é SIM cai no default (1); vazio cai em 2
+
 # Uma linha conta como pendente sempre que o campo PAGO não for exatamente
 # "SIM" (cobre "NÃO", "EM ATRASO", "ACORDO", "PENDENTE" e também célula
 # vazia — nesse último caso vale conferir manualmente antes de enviar).
@@ -40,6 +49,8 @@ def _parse_valor(valor) -> Optional[float]:
     if valor is None:
         return None
     if isinstance(valor, (int, float)):
+        if isinstance(valor, float) and pd.isna(valor):
+            return None
         return float(valor)
     texto = str(valor).strip()
     if not texto:
@@ -67,14 +78,44 @@ class MensagemPendencia:
 
 
 def carregar_planilha(path: str) -> pd.DataFrame:
-    df = load_data_sheets(path, REQUIRED_HEADERS, chave_duplicidade=CHAVE_DUPLICIDADE)
+    # Não passamos chave_duplicidade aqui de propósito: o dedup genérico do
+    # excel_reader mantém "a primeira linha que aparecer", sem olhar pra
+    # coluna PAGO — poderia descartar justo a linha com a confirmação de
+    # pagamento e ficar com uma linha antiga em branco. Quem decide qual
+    # linha vence, aqui, é _resolver_lancamentos_duplicados (mais abaixo).
+    df = load_data_sheets(path, REQUIRED_HEADERS)
     if df.empty:
         raise ValueError(
             "Não encontrei nenhuma aba com as colunas 'EMPRESA', 'TIPO DE COBRANÇA' e "
             "'VALOR' (ou 'VALOR FALTANTE') nesta planilha. Verifique se é o arquivo de "
             "controle de pagamento/pendência correto."
         )
-    return df
+    return _resolver_lancamentos_duplicados(df)
+
+
+def _resolver_lancamentos_duplicados(df: pd.DataFrame) -> pd.DataFrame:
+    """Quando data+empresa+tipo+valor se repetem (o mesmo lançamento
+    guardado em duas abas), mantém só a linha com o status de PAGO mais
+    definitivo — 'SIM' sempre vence, célula vazia sempre perde."""
+    col_pago = _col_optional(df, "PAGO")
+    if col_pago is None:
+        return df
+
+    colunas_chave = [_col_optional(df, c) for c in CHAVE_DUPLICIDADE]
+    colunas_chave = [c for c in colunas_chave if c is not None]
+    if not colunas_chave:
+        return df
+
+    def _prioridade(v) -> int:
+        if v is None or (isinstance(v, float) and pd.isna(v)) or not str(v).strip():
+            return 2  # célula vazia: menos confiável, perde em caso de empate
+        return _PRIORIDADE_PAGO.get(normalize(v), 1)
+
+    prioridade = df[col_pago].apply(_prioridade)
+    df = df.assign(_prioridade_pago=prioridade)
+    df = df.sort_values("_prioridade_pago", kind="stable")
+    df = df.drop_duplicates(subset=colunas_chave, keep="first")
+    return df.drop(columns="_prioridade_pago").reset_index(drop=True)
 
 
 def listar_empresas(df: pd.DataFrame) -> List[str]:
