@@ -70,19 +70,31 @@ st.markdown(
         font-size: 0.95rem;
     }}
 
-    /* Abas */
-    .stTabs [data-baseweb="tab-list"] {{
+    /* Abas — seletores por data-testid (mais estáveis que as classes
+    geradas) e !important em tudo, para não deixar nenhuma cor padrão do
+    tema do Streamlit (inclusive o vermelho de foco/seleção) vazar por
+    cima do visual navy/dourado. */
+    [data-testid="stTabs"] [data-baseweb="tab-list"] {{
         gap: 4px;
-        border-bottom: 2px solid rgba(21,42,64,0.12);
+        border-bottom: 2px solid rgba(21,42,64,0.15) !important;
     }}
-    .stTabs [data-baseweb="tab"] {{
+    [data-testid="stTabs"] [data-testid="stTab"] {{
         height: 3rem;
         font-weight: 600;
-        color: rgba(120,120,120,0.9);
+        border-bottom: 3px solid transparent !important;
     }}
-    .stTabs [aria-selected="true"] {{
-        color: var(--navy) !important;
-        border-bottom: 3px solid var(--gold) !important;
+    [data-testid="stTabs"] [data-testid="stTab"] p {{
+        color: #8a95a3 !important;
+    }}
+    [data-testid="stTabs"] [data-testid="stTab"][aria-selected="true"] {{
+        border-bottom-color: var(--gold) !important;
+    }}
+    [data-testid="stTabs"] [data-testid="stTab"][aria-selected="true"] p {{
+        color: var(--gold) !important;
+        font-weight: 700 !important;
+    }}
+    [data-testid="stTabs"] [data-baseweb="tab-highlight"] {{
+        background-color: var(--gold) !important;
     }}
 
     /* Botões primários (inclui os de dentro de formulários: kind
