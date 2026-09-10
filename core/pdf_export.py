@@ -147,6 +147,7 @@ def gerar_pdf_audiencias(result: "AudienciasResult") -> bytes:
     if result.valor_unitario is not None:
         linhas_extra.append(f"Valor por audiência: {format_brl(result.valor_unitario)}")
     linhas_extra.append(f"Quantidade solicitada no período: {len(result.clientes)}")
+    linhas_extra.append(f"Acumulado no mês: {result.quantidade_mes}")
 
     y = _cabecalho_empresa(c, TOPO_CONTEUDO, result.empresa, result.cnpj, linhas_extra)
 

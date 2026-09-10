@@ -25,8 +25,19 @@ def load_config() -> Dict[str, Any]:
             empresa: {"valor": valor}
             for empresa, valor in conn.execute("SELECT empresa, valor FROM audiencias_valores").fetchall()
         }
+        faixas_audiencias = [
+            {"inicio": inicio, "fim": fim, "valor": valor}
+            for inicio, fim, valor in conn.execute(
+                "SELECT inicio, fim, valor FROM audiencias_faixas ORDER BY inicio"
+            ).fetchall()
+        ]
         cnpjs = dict(conn.execute("SELECT empresa, cnpj FROM cnpjs").fetchall())
-    return {"laudos": laudos, "audiencias": audiencias, "cnpjs": cnpjs}
+    return {
+        "laudos": laudos,
+        "audiencias": audiencias,
+        "faixas_audiencias": faixas_audiencias,
+        "cnpjs": cnpjs,
+    }
 
 
 def get_valor_laudo(config: Dict[str, Any], tipo_laudo: str):

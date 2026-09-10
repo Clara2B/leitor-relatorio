@@ -18,10 +18,8 @@ from core.config_store import (
     get_cnpj_empresa,
     load_config,
     remove_cnpj_empresa,
-    remove_config_audiencia,
     remove_valor_laudo,
     set_cnpj_empresa,
-    set_config_audiencia,
     set_valor_laudo,
 )
 from core.pdf_export import gerar_pdf_audiencias, gerar_pdf_laudos
@@ -446,15 +444,9 @@ def pagina_audiencias():
 
     if not resultado.valor_cadastrado:
         st.warning(
-            f"⚠️ A empresa **{empresa}** ainda não tem valor cadastrado. "
-            "Cadastre abaixo ou na aba **⚙️ Gerenciar valores**."
+            f"⚠️ Não existe faixa de preço cadastrada para o acumulado mensal de "
+            f"**{resultado.quantidade_mes}** audiências."
         )
-        with st.form("cadastro_rapido_audiencia"):
-            st.write(f"Cadastrar valor agora para {empresa}:")
-            valor_novo = st.number_input("Valor por audiência (R$)", min_value=0.0, step=10.0)
-            if st.form_submit_button("Cadastrar e gerar novamente", type="primary"):
-                set_config_audiencia(config, empresa, valor_novo)
-                st.success("Cadastrado! Clique em '🔎 Gerar relatório' novamente.")
         return
 
     st.markdown(f"#### Resultado — {resultado.empresa.upper()}")
@@ -462,6 +454,11 @@ def pagina_audiencias():
     m1.metric("Audiências no período", len(resultado.clientes))
     m2.metric("Valor por audiência", format_brl(resultado.valor_unitario) if resultado.valor_unitario else "—")
     m3.metric("Total", format_brl(resultado.total) if resultado.total is not None else "—")
+    st.caption(
+        f"Acumulado de {mes.lower()}/{int(ano)}: **{resultado.quantidade_mes_anterior}** da quinzena anterior "
+        f"+ **{len(resultado.clientes)}** deste período = **{resultado.quantidade_mes}** audiências. "
+        "O valor da faixa é aplicado somente às audiências deste período."
+    )
 
     with st.expander("Ver lista de clientes", expanded=True):
         st.dataframe(
@@ -584,43 +581,18 @@ def pagina_gerenciar_valores():
                 st.error("Informe o nome do tipo de laudo.")
 
     st.divider()
-    st.subheader("⚖️ Empresas de audiência")
-    st.caption("Valor por audiência, por empresa.")
-
-    aud_cfg = config.get("audiencias", {})
-    if not aud_cfg:
-        st.info("Nenhuma empresa de audiência cadastrada ainda.")
-    for empresa, dados in list(aud_cfg.items()):
-        with st.container(border=True):
-            c1, c2, c3 = st.columns([4, 2, 1])
-            c1.markdown(f"**{empresa}**")
-            novo_valor = c2.number_input(
-                "Valor por audiência (R$)",
-                min_value=0.0,
-                step=10.0,
-                value=float(dados.get("valor", 0.0)),
-                key=f"val_{empresa}",
-            )
-            c3.write("")
-            c3.write("")
-            if c3.button("🗑️ Remover", key=f"rm_aud_{empresa}", use_container_width=True):
-                remove_config_audiencia(config, empresa)
-                st.rerun()
-            if novo_valor != dados.get("valor"):
-                set_config_audiencia(config, empresa, novo_valor)
-                st.rerun()
-
-    with st.form("nova_empresa_audiencia", border=True):
-        st.markdown("**➕ Adicionar nova empresa**")
-        c1, c2 = st.columns(2)
-        nova_empresa = c1.text_input("Nome da empresa")
-        novo_valor = c2.number_input("Valor por audiência (R$)", min_value=0.0, step=10.0)
-        if st.form_submit_button("Adicionar", type="primary"):
-            if nova_empresa.strip():
-                set_config_audiencia(config, nova_empresa.strip(), novo_valor)
-                st.rerun()
-            else:
-                st.error("Informe o nome da empresa.")
+    st.subheader("⚖️ Faixas de preço das audiências")
+    st.caption("Aplicadas por empresa, conforme o total acumulado no mês.")
+    faixas = config.get("faixas_audiencias", [])
+    st.dataframe(
+        {
+            "De": [faixa["inicio"] for faixa in faixas],
+            "Até": [faixa["fim"] for faixa in faixas],
+            "Valor por audiência": [format_brl(float(faixa["valor"])) for faixa in faixas],
+        },
+        use_container_width=True,
+        hide_index=True,
+    )
 
     st.divider()
     st.subheader("🏢 CNPJ das empresas")

@@ -35,6 +35,16 @@ DEFAULT_LAUDOS = {
     "IMÓVEL": 70.0,
 }
 
+# Faixas mensais de cobrança das audiências. A faixa é definida pelo total
+# solicitado pela mesma empresa dentro do mês, não pelo total da quinzena.
+DEFAULT_AUDIENCIAS_FAIXAS = (
+    (1, 20, 400.0),
+    (21, 39, 350.0),
+    (40, 60, 300.0),
+    (61, 79, 250.0),
+    (80, 100, 200.0),
+)
+
 
 @contextmanager
 def get_connection() -> Iterator[sqlite3.Connection]:
@@ -60,6 +70,10 @@ def init_db() -> None:
             "empresa TEXT PRIMARY KEY, valor REAL NOT NULL)"
         )
         conn.execute(
+            "CREATE TABLE IF NOT EXISTS audiencias_faixas ("
+            "inicio INTEGER PRIMARY KEY, fim INTEGER NOT NULL, valor REAL NOT NULL)"
+        )
+        conn.execute(
             "CREATE TABLE IF NOT EXISTS cnpjs ("
             "empresa TEXT PRIMARY KEY, cnpj TEXT NOT NULL)"
         )
@@ -68,6 +82,13 @@ def init_db() -> None:
 
         if total_laudos == 0:
             _migrar_config_json_ou_padrao(conn)
+
+        total_faixas = conn.execute("SELECT COUNT(*) FROM audiencias_faixas").fetchone()[0]
+        if total_faixas == 0:
+            conn.executemany(
+                "INSERT INTO audiencias_faixas (inicio, fim, valor) VALUES (?, ?, ?)",
+                DEFAULT_AUDIENCIAS_FAIXAS,
+            )
 
 
 def _migrar_config_json_ou_padrao(conn: sqlite3.Connection) -> None:

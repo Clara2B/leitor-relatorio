@@ -87,14 +87,13 @@ folha A4 (retrato) — não precisa mexer em código. O texto do relatório
 (empresa, período, tabela, total) é desenhado por cima dessa imagem
 automaticamente.
 
-## Como editar os valores (tipos de laudo, empresas de audiência, CNPJs)
+## Como consultar os valores e editar cadastros
 
 Vá em **Gerenciar valores**, na aba do topo. Lá dá para:
 
 - Ver, editar e remover o valor de cada tipo de laudo (ex: AUTO = R$ 40,00).
 - Adicionar um tipo de laudo novo.
-- Ver, editar e remover o valor por audiência de cada empresa.
-- Adicionar uma empresa nova de audiência.
+- Consultar as faixas mensais de valor por audiência.
 - Ver, editar e remover o CNPJ de cada empresa (usado para preencher o
   campo automaticamente na hora de gerar o relatório).
 
@@ -146,9 +145,12 @@ código.
 - Período: quinzenal — dia 1 ao dia 15, ou dia 16 ao último dia do mês
   (você escolhe o mês/ano e a quinzena na tela).
 - Filtra só por empresa (todo relatório de audiência é sempre solicitação).
-- O valor por audiência **não vem da planilha** — é cadastrado por empresa
-  em "Gerenciar valores", porque a planilha de agendamento não tem essa
-  coluna.
+- O valor por audiência **não vem da planilha**. Ele é definido pela faixa
+  do total acumulado daquela empresa no mês: 1–20 (R$ 400,00), 21–39
+  (R$ 350,00), 40–60 (R$ 300,00), 61–79 (R$ 250,00) e 80–100 (R$ 200,00).
+  Na segunda quinzena, a faixa considera as audiências da primeira quinzena
+  mais as novas; o novo valor é aplicado somente às audiências da segunda
+  quinzena, sem recalcular a primeira.
 - O relatório mostra: período, valor por audiência, quantidade de clientes
   no período, a lista de clientes e o total (quantidade × valor).
 - Se a empresa ainda não tiver valor cadastrado, o programa avisa e oferece
