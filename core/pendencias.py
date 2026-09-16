@@ -21,22 +21,12 @@ from core.utils import format_brl, normalize
 
 REQUIRED_HEADERS = ["EMPRESA", "TIPO DE COBRANÇA", "VALOR"]
 CHAVE_DUPLICIDADE = ["DATA", "EMPRESA", "TIPO DE COBRANÇA", "VALOR"]
-
-# Quando a mesma cobrança (mesma data + empresa + tipo + valor) aparece
-# duas vezes na planilha — comum quando uma aba antiga (ex: "2025") e uma
-# aba nova ("2026") guardam o mesmo lançamento — precisamos ficar com a
-# linha que tem a informação de pagamento mais definitiva, não com
-# "a primeira que aparecer no arquivo". Sem isso, uma linha antiga sem o
-# campo PAGO preenchido podia vencer uma linha marcada "SIM" e a cobrança
-# aparecia como pendente mesmo já paga.
-_PRIORIDADE_PAGO = {"SIM": 0}  # tudo que não é SIM cai no default (1); vazio cai em 2
+_PRIORIDADE_PAGO = {"SIM" and "NÃO": 0}  # tudo que não é SIM e NÃO cai no default (1); vazio cai em 2
 
 # Uma linha só conta como pendente quando o campo PAGO tem um status
-# explícito diferente de "SIM" (cobre "NÃO", "EM ATRASO", "ACORDO",
-# "PENDENTE", "VERIFICAR", etc.). Célula vazia NÃO conta como pendente —
-# normalmente é um lançamento antigo que nunca chegou a ser marcado, não
-# uma cobrança em aberto de verdade.
-STATUS_PAGO_OK = normalize("SIM")
+# explícito diferente de "SIM" e "NÃO" (cobre "EM ATRASO", "ACORDO",
+# "PENDENTE", "VERIFICAR", etc.). Célula vazia NÃO conta como pendente
+STATUS_PAGO_OK = normalize("SIM", "NÃO")
 
 
 def _e_pendente(pago_valor) -> bool:
@@ -47,8 +37,8 @@ def _e_pendente(pago_valor) -> bool:
         return False
     return texto != STATUS_PAGO_OK
 
-PIX_EXIMIA = "✅ PIX: CPNJ: 655965130001-52 \nEXIMIA CAMARA DE CONCILIACAO MEDIACAO & ARBITRAGEM LTDA"
-PIX_ELITE = "✅ PIX: CPNJ 51.673.385/0001-99\nELITE MEDIAÇÕES LTDA"
+PIX_EXIMIA = "✅ PIX: CNPJ: 655965130001-52 \nEXIMIA CAMARA DE CONCILIACAO MEDIACAO & ARBITRAGEM LTDA"
+PIX_ELITE = "✅ PIX: CNPJ 51.673.385/0001-99\nELITE MEDIAÇÕES LTDA"
 
 _RE_INTERVALO_DATAS = re.compile(r"(\d{1,2}/\d{1,2}(?:/\d{2,4})?)\s*-\s*(\d{1,2}/\d{1,2}(?:/\d{2,4})?)")
 
