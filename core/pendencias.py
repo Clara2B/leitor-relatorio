@@ -35,7 +35,7 @@ def _e_pendente(pago_valor) -> bool:
     texto = normalize(pago_valor)
     if not texto:
         return False
-    return texto != STATUS_PAGO_OK
+    return texto not in STATUS_PAGO_OK
 
 PIX_EXIMIA = "✅ PIX: CNPJ: 655965130001-52 \nEXIMIA CAMARA DE CONCILIACAO MEDIACAO & ARBITRAGEM LTDA"
 PIX_ELITE = "✅ PIX: CNPJ 51.673.385/0001-99\nELITE MEDIAÇÕES LTDA"
