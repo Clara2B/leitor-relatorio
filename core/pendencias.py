@@ -21,7 +21,7 @@ from core.utils import format_brl, normalize
 
 REQUIRED_HEADERS = ["EMPRESA", "TIPO DE COBRANÇA", "VALOR"]
 CHAVE_DUPLICIDADE = ["DATA", "EMPRESA", "TIPO DE COBRANÇA", "VALOR"]
-_PRIORIDADE_PAGO = {"SIM": 0, "NÃO": 0}
+_PRIORIDADE_PAGO = {"SIM": 0}
 
 # Uma linha só conta como pendente quando o campo PAGO tem um status
 # explícito diferente de "SIM" e "NÃO" (cobre "EM ATRASO", "ACORDO",
