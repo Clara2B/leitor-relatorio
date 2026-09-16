@@ -26,7 +26,7 @@ _PRIORIDADE_PAGO = {"SIM" and "NÃO": 0}  # tudo que não é SIM e NÃO cai no d
 # Uma linha só conta como pendente quando o campo PAGO tem um status
 # explícito diferente de "SIM" e "NÃO" (cobre "EM ATRASO", "ACORDO",
 # "PENDENTE", "VERIFICAR", etc.). Célula vazia NÃO conta como pendente
-STATUS_PAGO_OK = normalize("SIM", "NÃO")
+STATUS_PAGO_OK = {normalize("SIM"), normalize("NÃO")}
 
 
 def _e_pendente(pago_valor) -> bool:
